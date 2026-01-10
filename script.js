@@ -79,7 +79,7 @@ function getTypeName(type) {
 // ===============================================
 
 // 버튼 ID 목록
-const btnIds = ['btn-all', 'btn-self', 'btn-notouch', 'btn-detailing', 'btn-hand'];
+const btnIds = ['btn-all', 'btn-self', 'btn-notouch'];
 
 // 각 버튼에 클릭 이벤트 연결
 btnIds.forEach(id => {
