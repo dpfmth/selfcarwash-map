@@ -1,0 +1,22 @@
+[
+  { "id": 1, "name": "스팽글 강남점", "type": "self", "lat": 37.498, "lng": 127.027, "time": "24시간", "foam": true },
+  { "id": 2, "name": "스팽글 송파점", "type": "self", "lat": 37.514, "lng": 127.100, "time": "09:00~23:00", "foam": false },
+  { "id": 3, "name": "스팽글 성수점", "type": "notouch", "lat": 37.544, "lng": 127.056, "time": "24시간", "foam": null },
+  { "id": 4, "name": "스팽글 용산점", "type": "detailing", "lat": 37.534, "lng": 126.992, "time": "10:00~19:00", "foam": null },
+  { "id": 5, "name": "스팽글 마포점", "type": "hand", "lat": 37.556, "lng": 126.923, "time": "09:00~18:00", "foam": null },
+  { "id": 6, "name": "스팽글 용인점", "type": "self", "lat": 37.321, "lng": 127.108, "time": "24시간", "foam": true },
+  { "id": 7, "name": "스팽글 분당점", "type": "self", "lat": 37.382, "lng": 127.118, "time": "24시간", "foam": true },
+  { "id": 8, "name": "스팽글 일산점", "type": "notouch", "lat": 37.658, "lng": 126.765, "time": "08:00~22:00", "foam": null },
+  { "id": 9, "name": "스팽글 인천점", "type": "detailing", "lat": 37.456, "lng": 126.705, "time": "예약제", "foam": null },
+  { "id": 10, "name": "스팽글 대전 유성점", "type": "self", "lat": 36.350, "lng": 127.384, "time": "24시간", "foam": true },
+  { "id": 11, "name": "스팽글 대전 도안점", "type": "notouch", "lat": 36.339, "lng": 127.345, "time": "24시간", "foam": null },
+  { "id": 12, "name": "스팽글 대구 수성점", "type": "self", "lat": 35.858, "lng": 128.630, "time": "24시간", "foam": true },
+  { "id": 13, "name": "스팽글 대구 달서점", "type": "self", "lat": 35.829, "lng": 128.535, "time": "09:00~02:00", "foam": true },
+  { "id": 14, "name": "스팽글 부산 해운대점", "type": "self", "lat": 35.163, "lng": 129.163, "time": "24시간", "foam": true },
+  { "id": 15, "name": "스팽글 부산 서면점", "type": "detailing", "lat": 35.157, "lng": 129.059, "time": "10:00~20:00", "foam": null },
+  { "id": 16, "name": "스팽글 광주 상무점", "type": "self", "lat": 35.153, "lng": 126.852, "time": "24시간", "foam": true },
+  { "id": 17, "name": "스팽글 울산 삼산점", "type": "notouch", "lat": 35.538, "lng": 129.336, "time": "08:00~23:00", "foam": null },
+  { "id": 18, "name": "스팽글 춘천 소양점", "type": "hand", "lat": 37.885, "lng": 127.729, "time": "09:00~18:00", "foam": null },
+  { "id": 19, "name": "스팽글 제주 공항점", "type": "self", "lat": 33.506, "lng": 126.492, "time": "24시간", "foam": true },
+  { "id": 20, "name": "스팽글 세종 아름점", "type": "self", "lat": 36.511, "lng": 127.243, "time": "24시간", "foam": true }
+]
