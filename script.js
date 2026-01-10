@@ -8,12 +8,10 @@ var allData = [];
 var markers = [];
 var currentOverlay = null;
 
-// 2. 페이지 로드 시 실행 (GPS -> 데이터 로드)
+// 2. 페이지 로드 시 실행
 window.onload = function() {
-    // ① 접속하자마자 GPS 실행
-    getMyLocation(); 
+    getMyLocation(); // 접속하자마자 GPS 실행 + 줌 인
     
-    // ② 데이터 가져오기
     fetch('./data.json')
         .then(res => res.json())
         .then(data => {
@@ -23,7 +21,7 @@ window.onload = function() {
         .catch(err => console.error("데이터 로드 실패:", err));
 }
 
-// 3. 마커 렌더링 함수 (포커스 모드 적용됨)
+// 3. 마커 렌더링 (포커스 모드)
 function renderMarkers(dataList) {
     removeMarkers(); 
     closeOverlay();
@@ -46,11 +44,10 @@ function renderMarkers(dataList) {
             content: content, position: position, yAnchor: 1
         });
 
-        // ★ 마커 클릭 이벤트 (다른 마커 숨기기)
+        // 마커 클릭 시
         kakao.maps.event.addListener(marker, 'click', function() {
             if (currentOverlay) currentOverlay.setMap(null);
             
-            // 클릭되지 않은 나머지 마커 숨김
             markers.forEach(m => {
                 if (m !== marker) m.setMap(null);
             });
@@ -62,7 +59,7 @@ function renderMarkers(dataList) {
     });
 }
 
-// 4. 초기화 및 닫기 함수
+// 4. 초기화 및 닫기
 function removeMarkers() {
     markers.forEach(m => m.setMap(null));
     markers = [];
@@ -73,17 +70,14 @@ function closeOverlay() {
         currentOverlay.setMap(null);
         currentOverlay = null;
     }
-    // 오버레이 닫으면 숨겨진 마커들 다시 보이기
     if (markers.length > 0) {
         markers.forEach(m => m.setMap(map));
     }
 }
 
-// 지도 빈 곳 클릭 시 닫기
 kakao.maps.event.addListener(map, 'click', closeOverlay);
 
-
-// 5. 버튼 필터링 (손세차 제외됨)
+// 5. 버튼 필터링
 const btnIds = ['btn-all', 'btn-self', 'btn-notouch'];
 
 btnIds.forEach(id => {
@@ -104,7 +98,7 @@ btnIds.forEach(id => {
     }
 });
 
-// 6. 검색 기능
+// 6. 검색
 document.getElementById('search-btn').addEventListener('click', searchPlaces);
 document.getElementById('search-keyword').addEventListener('keypress', function (e) {
     if (e.key === 'Enter') searchPlaces();
@@ -119,7 +113,7 @@ function searchPlaces() {
     renderMarkers(result);
 }
 
-// 7. GPS 기능 (자동실행 + 버튼클릭 공용)
+// 7. GPS 기능 (줌 기능 추가됨)
 document.getElementById('gps-btn').addEventListener('click', getMyLocation);
 
 function getMyLocation() {
@@ -133,7 +127,14 @@ function getMyLocation() {
                 var lng = position.coords.longitude;
                 var locPosition = new kakao.maps.LatLng(lat, lng);
 
-                map.panTo(locPosition);
+                // 1. 내 위치로 이동
+                map.setCenter(locPosition);
+                
+                // ★★★ 2. 지도 확대 (레벨 5: 동네 상세 뷰) ★★★
+                // 숫자가 작을수록 더 크게 확대됩니다 (1~14)
+                map.setLevel(5, {animate: true});
+
+                // 3. 내 위치 마커 표시
                 displayMyMarker(locPosition);
                 
                 if(btn) setTimeout(() => { btn.style.transform = "none"; }, 500);
