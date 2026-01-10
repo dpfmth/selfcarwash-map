@@ -15,7 +15,8 @@
 
     <div class="top-bar">
         <h1>세차장 찾기</h1>
-        <h3> designby.에르소</h3>
+        <p class="desc">디테일링포럼.에르소</p>
+        
         <div class="search-area">
             <input type="text" class="search-input" id="search-keyword" placeholder="지역 또는 이름 검색">
             <button id="search-btn">검색</button>
@@ -23,25 +24,24 @@
 
         <div class="tabs">
             <button id="btn-all" class="active">전체보기</button>
-            <button id="btn-self">셀프세차장</button>
-            <button id="btn-notouch">노터치세차장</button>
-           <!-- <button id="btn-detailing">디테일링</button> -->
-           <!-- <button id="btn-hand">손세차</button> -->
-        </div>
+            <button id="btn-self">셀프세차</button>
+            <button id="btn-notouch">노터치/자동</button>
+            <button id="btn-detailing">디테일링</button>
+            </div>
     </div>
-<div id="map"></div>
-<button id="gps-btn" title="내 위치로 이동">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"></circle> 
-        <line x1="22" y1="12" x2="18" y2="12"></line>
-        <line x1="6" y1="12" x2="2" y2="12"></line>
-        <line x1="12" y1="6" x2="12" y2="2"></line>
-        <line x1="12" y1="22" x2="12" y2="18"></line>
-    </svg>
-</button>
+
+    <div id="map"></div>
+
+    <button id="gps-btn" title="내 위치로 이동">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="22" y1="12" x2="18" y2="12"></line>
+            <line x1="6" y1="12" x2="2" y2="12"></line>
+            <line x1="12" y1="6" x2="12" y2="2"></line>
+            <line x1="12" y1="22" x2="12" y2="18"></line>
+        </svg>
+    </button>
+
     <script src="script.js"></script>
 </body>
 </html>
-
-
-
