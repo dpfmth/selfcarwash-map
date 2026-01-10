@@ -8,10 +8,12 @@ var allData = [];
 var markers = [];
 var currentOverlay = null;
 
-// 2. 페이지 로드 시 실행 (GPS -> 데이터 로드)
+// 2. 페이지 로드 시 실행
 window.onload = function() {
-    getMyLocation(); // 접속하자마자 GPS 실행 + 지도 확대
+    // ① 접속 시 GPS 실행 + 지도 확대
+    getMyLocation(); 
     
+    // ② 데이터 가져오기
     fetch('./data.json')
         .then(res => res.json())
         .then(data => {
@@ -31,12 +33,12 @@ function renderMarkers(dataList) {
         var marker = new kakao.maps.Marker({ map: map, position: position });
         markers.push(marker);
 
-        // 전화번호 HTML (링크 또는 텍스트)
+        // 전화번호 HTML
         var phoneHtml = shop.phone && shop.phone !== '정보없음' 
             ? `<a href="tel:${shop.phone}" style="color:#555; text-decoration:none;">📞 ${shop.phone}</a>` 
             : `<span style="color:#aaa;">📞 전화번호 없음</span>`;
 
-        // 말풍선 내용 생성
+        // 말풍선 내용 (태그 포함)
         var content = `
             <div class="overlay-bubble">
                 <div class="close-btn" onclick="closeOverlay()">✕</div>
@@ -66,7 +68,7 @@ function renderMarkers(dataList) {
             content: content, position: position, yAnchor: 1
         });
 
-        // 마커 클릭 이벤트 (포커스 모드)
+        // ★ 마커 클릭 이벤트 (포커스 모드: 다른 마커 숨기기)
         kakao.maps.event.addListener(marker, 'click', function() {
             if (currentOverlay) currentOverlay.setMap(null);
             
@@ -93,7 +95,7 @@ function closeOverlay() {
         currentOverlay.setMap(null);
         currentOverlay = null;
     }
-    // 숨겨진 마커들 다시 보이기
+    // 숨겨졌던 마커들 다시 보이기
     if (markers.length > 0) {
         markers.forEach(m => m.setMap(map));
     }
@@ -101,28 +103,22 @@ function closeOverlay() {
 
 kakao.maps.event.addListener(map, 'click', closeOverlay);
 
-// 5. 버튼 필터링 (손세차 제외)
+// 5. 버튼 필터링
 const btnIds = ['btn-all', 'btn-self', 'btn-notouch'];
-
 btnIds.forEach(id => {
     var btn = document.getElementById(id);
     if(btn) {
         btn.addEventListener('click', function() {
             document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
             this.classList.add('active'); 
-
             const type = id.replace('btn-', ''); 
-            if (type === 'all') {
-                renderMarkers(allData);
-            } else {
-                const filtered = allData.filter(item => item.type === type);
-                renderMarkers(filtered);
-            }
+            if (type === 'all') renderMarkers(allData);
+            else renderMarkers(allData.filter(item => item.type === type));
         });
     }
 });
 
-// 6. 검색 기능
+// 6. 검색 및 GPS
 document.getElementById('search-btn').addEventListener('click', searchPlaces);
 document.getElementById('search-keyword').addEventListener('keypress', function (e) {
     if (e.key === 'Enter') searchPlaces();
@@ -131,34 +127,27 @@ document.getElementById('search-keyword').addEventListener('keypress', function 
 function searchPlaces() {
     var keyword = document.getElementById('search-keyword').value.trim();
     if (!keyword) return alert('검색어를 입력하세요.');
-    
     var result = allData.filter(d => d.name.includes(keyword));
     if (result.length === 0) return alert('검색 결과가 없습니다.');
     renderMarkers(result);
 }
 
-// 7. GPS 기능 (자동실행 + 줌 인)
 document.getElementById('gps-btn').addEventListener('click', getMyLocation);
 
 function getMyLocation() {
     if (navigator.geolocation) {
         var btn = document.getElementById('gps-btn');
         if(btn) btn.style.transform = "rotate(360deg)";
-        
         navigator.geolocation.getCurrentPosition(
             function(position) {
-                var lat = position.coords.latitude;
-                var lng = position.coords.longitude;
-                var locPosition = new kakao.maps.LatLng(lat, lng);
-
+                var locPosition = new kakao.maps.LatLng(position.coords.latitude, position.coords.longitude);
                 map.setCenter(locPosition);
                 map.setLevel(5, {animate: true}); // 지도 확대
                 displayMyMarker(locPosition);
-                
                 if(btn) setTimeout(() => { btn.style.transform = "none"; }, 500);
             }, 
             function(error) {
-                console.error("GPS 에러:", error);
+                console.error("GPS Error:", error);
                 if(btn) btn.style.transform = "none";
             }
         );
@@ -167,12 +156,8 @@ function getMyLocation() {
 
 function displayMyMarker(locPosition) {
     var imageSrc = "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png"; 
-    var imageSize = new kakao.maps.Size(24, 35); 
-    var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize); 
-
-    var marker = new kakao.maps.Marker({
-        map: map, position: locPosition, image : markerImage, title: "내 위치"
-    });
+    var markerImage = new kakao.maps.MarkerImage(imageSrc, new kakao.maps.Size(24, 35)); 
+    new kakao.maps.Marker({ map: map, position: locPosition, image : markerImage, title: "내 위치" });
 }
 
 function getTypeName(type) {
