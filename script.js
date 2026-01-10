@@ -8,29 +8,31 @@ var allData = [];
 var markers = [];
 var currentOverlay = null;
 
-// 2. 초기 실행 (GPS -> 데이터 로드)
+// 2. 페이지 로드 시 실행 (GPS -> 데이터 로드)
 window.onload = function() {
-    getMyLocation(); // 내 위치 먼저 잡고
+    // ① 접속하자마자 GPS 실행
+    getMyLocation(); 
     
+    // ② 데이터 가져오기
     fetch('./data.json')
         .then(res => res.json())
         .then(data => {
             allData = data;
-            renderMarkers(allData); // 데이터 뿌리기
-        });
+            renderMarkers(allData); 
+        })
+        .catch(err => console.error("데이터 로드 실패:", err));
 }
 
-// 3. 마커 렌더링 함수
+// 3. 마커 렌더링 함수 (포커스 모드 적용됨)
 function renderMarkers(dataList) {
-    removeMarkers(); // 기존 마커 싹 지우기
-    closeOverlay();  // 열린 말풍선도 닫기
+    removeMarkers(); 
+    closeOverlay();
 
     dataList.forEach(shop => {
         var position = new kakao.maps.LatLng(shop.lat, shop.lng);
         var marker = new kakao.maps.Marker({ map: map, position: position });
-        markers.push(marker); // 배열에 저장 (나중에 껐다 켰다 하기 위해)
+        markers.push(marker);
 
-        // 말풍선 내용
         var content = `
             <div class="overlay-bubble">
                 <div class="close-btn" onclick="closeOverlay()">✕</div>
@@ -44,19 +46,15 @@ function renderMarkers(dataList) {
             content: content, position: position, yAnchor: 1
         });
 
-        // ★★★ [핵심] 마커 클릭 이벤트 수정됨 ★★★
+        // ★ 마커 클릭 이벤트 (다른 마커 숨기기)
         kakao.maps.event.addListener(marker, 'click', function() {
-            // 1. 기존 열린 오버레이 닫기
             if (currentOverlay) currentOverlay.setMap(null);
             
-            // 2. ★ 다른 마커들 숨기기 (포커스 모드) ★
+            // 클릭되지 않은 나머지 마커 숨김
             markers.forEach(m => {
-                if (m !== marker) { // 내가 클릭한 마커가 아니면
-                    m.setMap(null); // 지도에서 지워라
-                }
+                if (m !== marker) m.setMap(null);
             });
 
-            // 3. 내 오버레이 열기 & 지도 이동
             overlay.setMap(map);
             currentOverlay = overlay;
             map.panTo(position);
@@ -64,41 +62,28 @@ function renderMarkers(dataList) {
     });
 }
 
-// 4. 마커 모두 지우기 (필터링용 아예 삭제)
+// 4. 초기화 및 닫기 함수
 function removeMarkers() {
     markers.forEach(m => m.setMap(null));
     markers = [];
 }
 
-// 5. ★★★ [핵심] 오버레이 닫기 & 마커 복구 함수 ★★★
 function closeOverlay() {
     if (currentOverlay) {
         currentOverlay.setMap(null);
         currentOverlay = null;
     }
-    
-    // ★ 숨겨졌던 마커들 다시 다 보여주기 ★
+    // 오버레이 닫으면 숨겨진 마커들 다시 보이기
     if (markers.length > 0) {
         markers.forEach(m => m.setMap(map));
     }
 }
 
-// 지도 빈 곳 클릭 시에도 닫기 & 마커 복구
-kakao.maps.event.addListener(map, 'click', function() {
-    closeOverlay();
-});
+// 지도 빈 곳 클릭 시 닫기
+kakao.maps.event.addListener(map, 'click', closeOverlay);
 
 
-// 6. 유틸리티 함수들
-function getTypeName(type) {
-    if (type === 'self') return '셀프세차';
-    if (type === 'notouch') return '노터치/자동';
-    return type;
-}
-
-// ===============================================
-// ★ 버튼 활성화 및 필터링
-// ===============================================
+// 5. 버튼 필터링 (손세차 제외됨)
 const btnIds = ['btn-all', 'btn-self', 'btn-notouch'];
 
 btnIds.forEach(id => {
@@ -119,7 +104,7 @@ btnIds.forEach(id => {
     }
 });
 
-// 검색 기능
+// 6. 검색 기능
 document.getElementById('search-btn').addEventListener('click', searchPlaces);
 document.getElementById('search-keyword').addEventListener('keypress', function (e) {
     if (e.key === 'Enter') searchPlaces();
@@ -131,13 +116,10 @@ function searchPlaces() {
     
     var result = allData.filter(d => d.name.includes(keyword));
     if (result.length === 0) return alert('검색 결과가 없습니다.');
-    
     renderMarkers(result);
 }
 
-// ===============================================
-// ★ 내 위치(GPS)
-// ===============================================
+// 7. GPS 기능 (자동실행 + 버튼클릭 공용)
 document.getElementById('gps-btn').addEventListener('click', getMyLocation);
 
 function getMyLocation() {
@@ -157,7 +139,7 @@ function getMyLocation() {
                 if(btn) setTimeout(() => { btn.style.transform = "none"; }, 500);
             }, 
             function(error) {
-                console.error(error);
+                console.error("GPS 에러:", error);
                 if(btn) btn.style.transform = "none";
             }
         );
@@ -165,15 +147,17 @@ function getMyLocation() {
 }
 
 function displayMyMarker(locPosition) {
-    // 내 위치 마커 아이콘 설정 (파란 점)
     var imageSrc = "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png"; 
     var imageSize = new kakao.maps.Size(24, 35); 
     var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize); 
 
     var marker = new kakao.maps.Marker({
-        map: map,
-        position: locPosition,
-        image : markerImage,
-        title: "내 위치"
+        map: map, position: locPosition, image : markerImage, title: "내 위치"
     });
+}
+
+function getTypeName(type) {
+    if (type === 'self') return '셀프세차';
+    if (type === 'notouch') return '노터치/자동';
+    return type;
 }
