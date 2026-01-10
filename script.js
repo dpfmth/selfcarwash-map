@@ -1,122 +1,73 @@
-// --- 1. 더미 데이터 ---
-const washData = [
-    { id: 1, name: "스팽글세차장 강남점", type: "self", lat: 37.498, lng: 127.027, time: "24시간", foam: true },
-    { id: 2, name: "스팽글세차장 송파", type: "self", lat: 37.514, lng: 127.100, time: "09:00~23:00", foam: false },
-    { id: 3, name: "스팽글세차장 노터치", type: "notouch", lat: 37.544, lng: 127.056, time: "24시간", foam: null },
-    { id: 4, name: "스팽글디테일링센터", type: "detailing", lat: 37.534, lng: 126.992, time: "10:00~19:00", foam: null },
-    { id: 5, name: "스팽글손세차달인", type: "hand", lat: 37.524, lng: 127.042, time: "09:00~18:00", foam: null },
-];
-
-let currentType = 'self'; // 현재 탭
-let map; // 지도 객체
-let markers = []; // 마커 관리용 배열
-let overlays = []; // 오버레이 관리용 배열
-
-// --- 2. 초기화 (페이지 로드 완료 시 실행) ---
-window.onload = function() {
-    const container = document.getElementById('map'); // 지도를 담을 영역
-    
-    // 카카오맵 옵션 설정
-    const options = { 
-        center: new kakao.maps.LatLng(37.498, 127.027), // 초기 중심좌표 (강남)
-        level: 7 // 지도의 확대 레벨
-    };
-
-    // 지도 생성!
-    map = new kakao.maps.Map(container, options);
-
-    // ★ 안내 문구 숨기기 (지도가 떴으니 이제 안 보여도 됨)
-    document.querySelector('.map-placeholder').style.display = 'none';
-
-    // 초기 마커 그리기
-    renderMarkers(); 
+// 1. 지도 생성
+var container = document.getElementById('map');
+var options = {
+    center: new kakao.maps.LatLng(36.5, 127.5), // 전국이 다 보이게 중심 설정
+    level: 13 // 전국 뷰 레벨
 };
+var map = new kakao.maps.Map(container, options);
 
-// --- 3. 마커 및 오버레이 그리기 함수 ---
-function renderMarkers() {
-    // 1. 기존 마커/오버레이 지우기
-    markers.forEach(m => m.setMap(null));
-    overlays.forEach(o => o.setMap(null));
-    markers = [];
-    overlays = [];
+// 2. 마커 이미지를 담을 변수 (유형별 색상 구분 등 필요시 사용)
+// 일단 기본 마커를 사용하거나 커스텀 이미지가 있다면 여기에 정의
 
-    // 2. 현재 탭(currentType)에 맞는 데이터만 필터링해서 그리기
-    washData.forEach(shop => {
-        if(shop.type !== currentType) return; // 타입 안 맞으면 패스
+// 3. 인포윈도우 (하나만 만들어서 재사용 - 클릭할 때마다 내용만 바뀜)
+var infowindow = new kakao.maps.InfoWindow({
+    zIndex: 1,
+    removable: true
+});
 
-        // 마커 위치
-        const position = new kakao.maps.LatLng(shop.lat, shop.lng);
 
-        // 마커 생성
-        const marker = new kakao.maps.Marker({
-            map: map,
-            position: position
+// 4. 데이터 불러오기 및 마커 생성 (핵심 부분)
+fetch('./data.json')
+    .then(response => response.json())
+    .then(washData => {
+        console.log("데이터 로드 성공, 총 개수:", washData.length);
+
+        // 데이터 개수만큼 반복하며 마커 생성
+        washData.forEach(shop => {
+            
+            // 위도, 경도로 위치 객체 생성
+            var position = new kakao.maps.LatLng(shop.lat, shop.lng);
+
+            // 마커 생성
+            var marker = new kakao.maps.Marker({
+                map: map,
+                position: position,
+                title: shop.name // 마우스 올리면 이름 나옴
+            });
+
+            // 마커 클릭 이벤트 리스너 추가
+            kakao.maps.event.addListener(marker, 'click', function() {
+                
+                // 인포윈도우에 들어갈 HTML 내용 구성
+                var content = `
+                    <div style="padding:10px; min-width:200px; font-size:14px;">
+                        <h4 style="margin:0 0 5px 0;">${shop.name}</h4>
+                        <p style="margin:5px 0;">
+                            <b>유형:</b> ${getTypeName(shop.type)}<br>
+                            <b>영업시간:</b> ${shop.time}<br>
+                            ${shop.foam !== null ? `<b>폼건:</b> ${shop.foam ? '있음' : '없음'}` : ''}
+                        </p>
+                    </div>
+                `;
+
+                // 인포윈도우 내용 설정 및 열기
+                infowindow.setContent(content);
+                infowindow.open(map, marker);
+            });
         });
-        markers.push(marker); // 나중에 지우기 위해 배열에 저장
 
-        // 커스텀 오버레이(버블) 내용 생성
-        const content = createContent(shop);
-
-        // 오버레이 생성
-        const overlay = new kakao.maps.CustomOverlay({
-            content: content,
-            map: map,
-            position: marker.getPosition(),
-            yAnchor: 1 // 버블의 꼬리가 마커 위에 오도록 위치 조정
-        });
-        overlays.push(overlay);
-
-        // (선택사항) 마커 클릭 시 오버레이 껐다 켰다 하려면 여기에 이벤트 추가
+    })
+    .catch(error => {
+        console.error("데이터 로드 실패! data.json 파일이 있는지 확인하세요.", error);
+        alert("데이터를 불러오지 못했습니다. 로컬 파일(file://)이 아닌 서버(GitHub 등)에서 실행하세요.");
     });
+
+
+// [보조 함수] 영문 타입 코드를 한글로 변환
+function getTypeName(typeCode) {
+    if (typeCode === 'self') return '셀프세차';
+    if (typeCode === 'notouch') return '노터치/자동';
+    if (typeCode === 'detailing') return '디테일링/광택';
+    if (typeCode === 'hand') return '손세차';
+    return typeCode;
 }
-
-// --- 4. 탭 변경 함수 ---
-function filterMap(type, btn) {
-    currentType = type;
-    
-    // 버튼 스타일 변경
-    document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-
-    // 지도 다시 그리기
-    renderMarkers();
-}
-
-// --- 5. 버블(오버레이) HTML 생성 ---
-function createContent(data) {
-    let infoHtml = '';
-
-    // 셀프 세차장일 때만 폼랜스 표시
-    if (data.type === 'self') {
-        const foamStatus = data.foam 
-            ? `<span class="foam-lance">✔ 폼랜스 사용가능</span>` 
-            : `<span style="color:#999">폼랜스 사용불가</span>`;
-        
-        infoHtml = `
-            <p>🕒 ${data.time}</p>
-            <p>🚿 ${foamStatus}</p>
-        `;
-    } else {
-        infoHtml = `<p>🕒 ${data.time}</p>`;
-    }
-
-    const typeNames = { self: '셀프', notouch: '노터치', detailing: '디테일링', hand: '손세차' };
-    
-    // 닫기 기능이나 스타일은 CSS .bubble 클래스 참고
-    return `
-        <div class="bubble">
-            <span class="badge">${typeNames[data.type]}</span>
-            <h3>${data.name}</h3>
-            ${infoHtml}
-        </div>
-    `;
-}
-
-// 검색 및 정렬 (껍데기)
-function handleSearch() {
-    console.log("검색 기능은 데이터를 DB와 연결 후 구현됩니다.");
-}
-function handleSort(val) {
-    console.log("정렬 기능 준비 중");
-}
-
