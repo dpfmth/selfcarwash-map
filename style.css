@@ -86,3 +86,43 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
     cursor: pointer; font-size: 14px; transition: 0.2s;
 }
 .overlay-bubble .close-btn:hover { background: #eee; color: #333; }
+
+/* ★★★ 내 위치(GPS) 버튼 디자인 ★★★ */
+#gps-btn {
+    position: absolute;
+    bottom: 30px;
+    right: 20px;
+    z-index: 100; /* 지도 위에 떠있어야 함 */
+    
+    width: 48px;
+    height: 48px;
+    border-radius: 50%; /* 완전한 원형 */
+    background-color: #fff;
+    border: none;
+    
+    /* 그림자 효과 (기존 UI와 통일) */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s ease;
+    color: #555; /* 아이콘 색상 */
+}
+
+#gps-btn:hover {
+    background-color: #f8f9fa;
+    color: #222;
+    transform: translateY(-2px); /* 살짝 떠오르는 효과 */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+#gps-btn:active {
+    transform: translateY(0);
+}
+
+#gps-btn svg {
+    width: 24px;
+    height: 24px;
+}
