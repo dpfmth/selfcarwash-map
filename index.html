@@ -1,43 +1,44 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>세차장 지도</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>디테일링포럼<BR>세차여지도</title>
+    
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    
+    <link rel="stylesheet" href="style.css">
 
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-    }
-    #map {
-      width: 100%;
-      height: 100vh;
-    }
-  </style>
-
-  <!-- 🔴 반드시 실제 JavaScript 키 -->
-  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=071678e0af064945d4c2ac55dca44e9c"></script>
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=071678e0af064945d4c2ac55dca44e9c"></script>
 </head>
 <body>
- <div id="map"></div>
 
-  <script>
-    const map = new kakao.maps.Map(
-      document.getElementById("map"),
-      {
-        center: new kakao.maps.LatLng(37.5665, 126.9780),
-        level: 7
-      }
-    );
+    <div class="top-bar">
+        <h1>세차장 찾기</h1>
+        
+        <div class="tabs">
+            <button class="active" onclick="filterMap('self', this)">셀프세차장</button>
+            <button onclick="filterMap('notouch', this)">노터치세차장</button>
+            <button onclick="filterMap('detailing', this)">디테일링샵</button>
+            <button onclick="filterMap('hand', this)">손세차장</button>
+        </div>
 
-    new kakao.maps.Marker({
-      map,
-      position: new kakao.maps.LatLng(37.5665, 126.9780)
-    });
-  </script>
+        <div class="search-area">
+            <input type="text" class="search-input" id="searchInput" placeholder="지역 또는 세차장명 검색" onkeyup="handleSearch()">
+            <select class="sort-select" onchange="handleSort(this.value)">
+                <option value="name">이름순</option>
+                <option value="dist">거리순</option>
+            </select>
+        </div>
+    </div>
 
+    <div id="map">
+        <div class="map-placeholder">
+            <p><strong>지도를 불러오려면 API 키가 필요합니다.</strong><br>
+            스크립트 코드를 참고하여 카카오맵 API를 연동하세요.</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
