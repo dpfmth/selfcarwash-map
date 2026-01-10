@@ -13,12 +13,20 @@ fetch('./data.json')
     .then(res => res.json())
     .then(data => {
         allData = data;
-        renderMarkers(allData); // 초기 실행: 전체 데이터 표시
+        // 초기 데이터 뿌리기 (손세차 메뉴를 숨겼으므로, 지도에서도 처음부터 뺄지 고민되지만 일단 다 보여줍니다)
+        // 만약 처음부터 손세차를 빼고 싶다면 아래 줄을 주석처리하고 그 아래 줄을 푸세요.
+        renderMarkers(allData); 
+        // renderMarkers(allData.filter(d => d.type !== 'hand')); 
     });
 
-// 3. 마커 렌더링 함수
+// ★★★ 3. 페이지 접속하자마자 GPS 실행하기 ★★★
+// (이 코드가 있어서 들어오자마자 팝업이 뜹니다)
+window.onload = function() {
+    getMyLocation(); 
+}
+
+// 4. 마커 렌더링 함수
 function renderMarkers(dataList) {
-    // 기존 마커 & 오버레이 제거
     removeMarkers();
     if (currentOverlay) currentOverlay.setMap(null);
 
@@ -27,7 +35,6 @@ function renderMarkers(dataList) {
         var marker = new kakao.maps.Marker({ map: map, position: position });
         markers.push(marker);
 
-        // ★★★ 디자인된 말풍선 HTML (style.css와 짝꿍) ★★★
         var content = `
             <div class="overlay-bubble">
                 <div class="close-btn" onclick="closeOverlay()">✕</div>
@@ -38,17 +45,13 @@ function renderMarkers(dataList) {
         `;
 
         var overlay = new kakao.maps.CustomOverlay({
-            content: content,
-            position: position,
-            yAnchor: 1
+            content: content, position: position, yAnchor: 1
         });
 
         kakao.maps.event.addListener(marker, 'click', function() {
             if (currentOverlay) currentOverlay.setMap(null);
             overlay.setMap(map);
             currentOverlay = overlay;
-            
-            // (선택) 클릭시 지도가 해당 마커로 부드럽게 이동
             map.panTo(position);
         });
     });
@@ -75,31 +78,30 @@ function getTypeName(type) {
 }
 
 // ===============================================
-// ★ 버튼 활성화(색상 변경) 및 필터링 기능
+// ★ 버튼 활성화 및 필터링 (손세차 제외됨)
 // ===============================================
 
-// 버튼 ID 목록
-const btnIds = ['btn-all', 'btn-self', 'btn-notouch'];
+// HTML에서 손세차 버튼을 주석처리 했으므로, 여기서도 리스트에서 뺍니다.
+// (btn-hand 제거함 -> 에러 방지)
+const btnIds = ['btn-all', 'btn-self', 'btn-notouch', 'btn-detailing'];
 
-// 각 버튼에 클릭 이벤트 연결
 btnIds.forEach(id => {
-    document.getElementById(id).addEventListener('click', function() {
-        
-        // 1. 시각적 처리: 모든 버튼의 active 클래스 제거 -> 클릭한 것만 추가
-        document.querySelectorAll('.tabs button').forEach(btn => btn.classList.remove('active'));
-        this.classList.add('active'); 
+    // 혹시 HTML에 버튼이 없을 수도 있으니 확인 후 이벤트 연결
+    var btn = document.getElementById(id);
+    if(btn) {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.tabs button').forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active'); 
 
-        // 2. 데이터 필터링 처리
-        // ID에서 'btn-'을 뺀 뒷부분(all, self 등)을 가져옴
-        const type = id.replace('btn-', ''); 
-        
-        if (type === 'all') {
-            renderMarkers(allData);
-        } else {
-            const filtered = allData.filter(item => item.type === type);
-            renderMarkers(filtered);
-        }
-    });
+            const type = id.replace('btn-', ''); 
+            if (type === 'all') {
+                renderMarkers(allData);
+            } else {
+                const filtered = allData.filter(item => item.type === type);
+                renderMarkers(filtered);
+            }
+        });
+    }
 });
 
 // 검색 기능
@@ -117,66 +119,56 @@ function searchPlaces() {
     
     renderMarkers(result);
 }
+
 // ===============================================
-// ★ 내 위치(GPS) 이동 기능
+// ★ 내 위치(GPS) 함수 분리
 // ===============================================
 
-document.getElementById('gps-btn').addEventListener('click', function() {
-    // 브라우저가 GPS를 지원하는지 확인
+// 버튼 클릭 시 실행
+document.getElementById('gps-btn').addEventListener('click', getMyLocation);
+
+// 실제 위치 가져오는 로직 (자동실행/버튼클릭 공용)
+function getMyLocation() {
     if (navigator.geolocation) {
-        
-        // 로딩 중임을 알리기 위해 버튼 살짝 회전 (선택사항)
-        var btn = this;
-        btn.style.transform = "rotate(360deg)";
+        // 아이콘 회전 효과 (버튼이 있을 때만)
+        var btn = document.getElementById('gps-btn');
+        if(btn) btn.style.transform = "rotate(360deg)";
         
         navigator.geolocation.getCurrentPosition(
             function(position) {
-                // 1. 성공 시: 위도 경도 가져오기
                 var lat = position.coords.latitude;
                 var lng = position.coords.longitude;
                 var locPosition = new kakao.maps.LatLng(lat, lng);
 
-                // 2. 지도 중심을 내 위치로 부드럽게 이동
                 map.panTo(locPosition);
                 
-                // 3. (선택) 내 위치에 파란 점 마커 찍기
-                // 기존 마커들과 헷갈리지 않게 '내 위치'라는 걸 표시
-                var message = '<div style="padding:5px;">🚩 현재 내 위치</div>';
-                displayMarker(locPosition, message);
+                // 내 위치 마커 표시
+                displayMyMarker(locPosition);
                 
-                // 버튼 회전 원상복구
-                setTimeout(() => { btn.style.transform = "none"; }, 500);
+                if(btn) setTimeout(() => { btn.style.transform = "none"; }, 500);
             }, 
             function(error) {
-                // 실패 시
                 console.error(error);
-                alert("내 위치를 가져올 수 없습니다. GPS 설정을 확인해주세요.");
-                btn.style.transform = "none";
+                // 자동 실행일 때는 에러 메시지를 안 띄우는 게 사용자 경험상 좋습니다.
+                // (차단했을 수도 있으니까요)
+                if(btn) btn.style.transform = "none";
             }
         );
-        
     } else {
-        alert("이 브라우저는 GPS를 지원하지 않습니다.");
+        // GPS 미지원 브라우저
     }
-});
+}
 
-// (보조 함수) 내 위치에 간단한 마커 표시하기
-function displayMarker(locPosition, message) {
-    // 내 위치 마커 이미지를 따로 쓰거나, 기본 마커를 사용
-    var marker = new kakao.maps.Marker({  
-        map: map, 
-        position: locPosition
-    }); 
-    
-    var iwContent = message, // 인포윈도우에 표시할 내용
-        iwRemoveable = true;
+function displayMyMarker(locPosition) {
+    // 내 위치 마커는 기존 마커 배열(markers)에 넣지 않음 (필터링 때 사라지지 않게)
+    var imageSrc = "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png"; 
+    var imageSize = new kakao.maps.Size(24, 35); 
+    var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize); 
 
-    var infowindow = new kakao.maps.InfoWindow({
-        content : iwContent,
-        removable : iwRemoveable
+    var marker = new kakao.maps.Marker({
+        map: map,
+        position: locPosition,
+        image : markerImage,
+        title: "내 위치"
     });
-    
-    infowindow.open(map, marker);
-    
-    // 내 위치 마커는 markers 배열에 넣지 않음 (필터링 때 사라지면 안되니까)
 }
