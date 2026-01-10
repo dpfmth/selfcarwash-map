@@ -20,18 +20,27 @@ body, html {
     background: rgba(255, 255, 255, 0.95);
     padding: 24px; 
     border-radius: 20px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* 그림자 더 부드럽게 */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     width: 340px; 
     max-width: 90%;
-    backdrop-filter: blur(5px); /* 배경 흐림 효과 */
+    backdrop-filter: blur(5px);
 }
 
 .top-bar h1 { 
-    margin: 0 0 16px 0; 
+    margin: 0 0 5px 0; /* 서브텍스트와 간격 좁힘 */
     font-size: 22px; 
     font-weight: 800; 
     color: #111; 
     letter-spacing: -0.5px; 
+}
+
+/* ★ 추가된 서브 텍스트 스타일 ★ */
+.top-bar .desc {
+    font-size: 12px;
+    color: #999;
+    margin: 0 0 20px 0; /* 아래 검색창과 간격 */
+    font-weight: 500;
+    letter-spacing: 0.5px;
 }
 
 /* 검색창 */
@@ -71,7 +80,7 @@ body, html {
 }
 .tabs button:hover { background-color: #eee; }
 
-/* 버튼 활성화 상태 (검정색 반전) */
+/* 버튼 활성화 상태 */
 .tabs button.active {
     background-color: #222; 
     color: #fff; 
@@ -85,7 +94,7 @@ body, html {
     background-color: #fff;
     border-radius: 16px;
     padding: 16px 20px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); /* 입체감 강화 */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
     text-align: left;
     position: relative;
     bottom: 55px;
@@ -106,7 +115,6 @@ body, html {
     filter: drop-shadow(0 2px 2px rgba(0,0,0,0.05));
 }
 
-/* 내용 스타일 */
 .overlay-bubble h3 { 
     margin: 0 0 6px 0; 
     font-size: 17px; 
@@ -133,7 +141,6 @@ body, html {
     margin-right: 4px;
 }
 
-/* 닫기 버튼 (X) */
 .overlay-bubble .close-btn {
     position: absolute; 
     top: 12px; 
@@ -152,12 +159,12 @@ body, html {
 }
 .overlay-bubble .close-btn:hover { background: #eee; color: #333; }
 
-/* 5. 내 위치(GPS) 버튼 디자인 (수정됨: fixed 적용) */
+/* 5. 내 위치(GPS) 버튼 디자인 */
 #gps-btn {
-    position: fixed; /* absolute 대신 fixed 사용 */
+    position: fixed;
     bottom: 30px;
     right: 20px;
-    z-index: 999; /* 지도보다 위에 뜨도록 설정 */
+    z-index: 999;
     
     width: 48px;
     height: 48px;
@@ -173,8 +180,6 @@ body, html {
     align-items: center;
     transition: all 0.2s ease;
     color: #555;
-    
-    /* 아이폰 하단 바 여백 대응 */
     padding-bottom: env(safe-area-inset-bottom);
 }
 
@@ -185,18 +190,12 @@ body, html {
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
 }
 
-#gps-btn:active {
-    transform: translateY(0);
-}
+#gps-btn:active { transform: translateY(0); }
 
-#gps-btn svg {
-    width: 24px;
-    height: 24px;
-}
+#gps-btn svg { width: 24px; height: 24px; }
 
-/* 6. 모바일 화면 최적화 (반응형) */
+/* 6. 모바일 화면 최적화 */
 @media (max-width: 480px) {
-    /* 상단 박스: 화면 꽉 차게 */
     .top-bar {
         left: 0;
         top: 0;
@@ -209,26 +208,13 @@ body, html {
         box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
 
-    .top-bar h1 {
-        font-size: 18px;
-        margin-bottom: 12px;
-    }
+    .top-bar h1 { font-size: 18px; margin-bottom: 2px; }
+    .top-bar .desc { font-size: 11px; margin-bottom: 15px; } /* 모바일에서 간격 조정 */
 
-    .search-area {
-        gap: 6px;
-        margin-bottom: 15px;
-    }
-    .search-input {
-        padding: 10px;
-        font-size: 13px;
-    }
-    #search-btn {
-        padding: 0 12px;
-        font-size: 13px;
-        white-space: nowrap;
-    }
+    .search-area { gap: 6px; margin-bottom: 15px; }
+    .search-input { padding: 10px; font-size: 13px; }
+    #search-btn { padding: 0 12px; font-size: 13px; white-space: nowrap; }
 
-    /* 탭 버튼 가로 스크롤 */
     .tabs {
         display: flex;
         flex-wrap: nowrap;
@@ -237,20 +223,8 @@ body, html {
         -webkit-overflow-scrolling: touch;
         gap: 6px;
     }
-    
     .tabs::-webkit-scrollbar { display: none; }
+    .tabs button { flex: 0 0 auto; font-size: 12px; padding: 7px 12px; }
 
-    .tabs button {
-        flex: 0 0 auto;
-        font-size: 12px;
-        padding: 7px 12px;
-    }
-
-    /* GPS 버튼 위치 조정 */
-    #gps-btn {
-        bottom: 25px;
-        right: 15px;
-        width: 44px;
-        height: 44px;
-    }
+    #gps-btn { bottom: 25px; right: 15px; width: 44px; height: 44px; }
 }
