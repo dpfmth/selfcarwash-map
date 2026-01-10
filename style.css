@@ -80,7 +80,19 @@ body, html {
 }
 .overlay-bubble .close-btn:hover { background: #eee; color: #333; }
 
-/* 5. GPS 버튼 (Fixed 적용) */
+/* 태그 디자인 (빨강/파랑) */
+.tag-red {
+    display: inline-block; font-size: 11px; padding: 3px 6px;
+    border-radius: 4px; background-color: #fff0f0; color: #e03131;
+    border: 1px solid #ffc9c9; font-weight: 600;
+}
+.tag-blue {
+    display: inline-block; font-size: 11px; padding: 3px 6px;
+    border-radius: 4px; background-color: #e7f5ff; color: #1971c2;
+    border: 1px solid #a5d8ff; font-weight: 600;
+}
+
+/* 5. GPS 버튼 (Fixed) */
 #gps-btn {
     position: fixed; bottom: 30px; right: 20px; z-index: 999;
     width: 48px; height: 48px; border-radius: 50%; background-color: #fff; border: none;
