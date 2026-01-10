@@ -8,33 +8,29 @@ var allData = [];
 var markers = [];
 var currentOverlay = null;
 
-// 2. 데이터 로드
-fetch('./data.json')
-    .then(res => res.json())
-    .then(data => {
-        allData = data;
-        // 초기 데이터 뿌리기 (손세차 메뉴를 숨겼으므로, 지도에서도 처음부터 뺄지 고민되지만 일단 다 보여줍니다)
-        // 만약 처음부터 손세차를 빼고 싶다면 아래 줄을 주석처리하고 그 아래 줄을 푸세요.
-        renderMarkers(allData); 
-        // renderMarkers(allData.filter(d => d.type !== 'hand')); 
-    });
-
-// ★★★ 3. 페이지 접속하자마자 GPS 실행하기 ★★★
-// (이 코드가 있어서 들어오자마자 팝업이 뜹니다)
+// 2. 초기 실행 (GPS -> 데이터 로드)
 window.onload = function() {
-    getMyLocation(); 
+    getMyLocation(); // 내 위치 먼저 잡고
+    
+    fetch('./data.json')
+        .then(res => res.json())
+        .then(data => {
+            allData = data;
+            renderMarkers(allData); // 데이터 뿌리기
+        });
 }
 
-// 4. 마커 렌더링 함수
+// 3. 마커 렌더링 함수
 function renderMarkers(dataList) {
-    removeMarkers();
-    if (currentOverlay) currentOverlay.setMap(null);
+    removeMarkers(); // 기존 마커 싹 지우기
+    closeOverlay();  // 열린 말풍선도 닫기
 
     dataList.forEach(shop => {
         var position = new kakao.maps.LatLng(shop.lat, shop.lng);
         var marker = new kakao.maps.Marker({ map: map, position: position });
-        markers.push(marker);
+        markers.push(marker); // 배열에 저장 (나중에 껐다 켰다 하기 위해)
 
+        // 말풍선 내용
         var content = `
             <div class="overlay-bubble">
                 <div class="close-btn" onclick="closeOverlay()">✕</div>
@@ -48,8 +44,19 @@ function renderMarkers(dataList) {
             content: content, position: position, yAnchor: 1
         });
 
+        // ★★★ [핵심] 마커 클릭 이벤트 수정됨 ★★★
         kakao.maps.event.addListener(marker, 'click', function() {
+            // 1. 기존 열린 오버레이 닫기
             if (currentOverlay) currentOverlay.setMap(null);
+            
+            // 2. ★ 다른 마커들 숨기기 (포커스 모드) ★
+            markers.forEach(m => {
+                if (m !== marker) { // 내가 클릭한 마커가 아니면
+                    m.setMap(null); // 지도에서 지워라
+                }
+            });
+
+            // 3. 내 오버레이 열기 & 지도 이동
             overlay.setMap(map);
             currentOverlay = overlay;
             map.panTo(position);
@@ -57,40 +64,48 @@ function renderMarkers(dataList) {
     });
 }
 
+// 4. 마커 모두 지우기 (필터링용 아예 삭제)
 function removeMarkers() {
     markers.forEach(m => m.setMap(null));
     markers = [];
 }
 
+// 5. ★★★ [핵심] 오버레이 닫기 & 마커 복구 함수 ★★★
 function closeOverlay() {
     if (currentOverlay) {
         currentOverlay.setMap(null);
         currentOverlay = null;
     }
+    
+    // ★ 숨겨졌던 마커들 다시 다 보여주기 ★
+    if (markers.length > 0) {
+        markers.forEach(m => m.setMap(map));
+    }
 }
 
+// 지도 빈 곳 클릭 시에도 닫기 & 마커 복구
+kakao.maps.event.addListener(map, 'click', function() {
+    closeOverlay();
+});
+
+
+// 6. 유틸리티 함수들
 function getTypeName(type) {
     if (type === 'self') return '셀프세차';
     if (type === 'notouch') return '노터치/자동';
-    if (type === 'detailing') return '디테일링';
-    if (type === 'hand') return '손세차';
     return type;
 }
 
 // ===============================================
-// ★ 버튼 활성화 및 필터링 (손세차 제외됨)
+// ★ 버튼 활성화 및 필터링
 // ===============================================
-
-// HTML에서 손세차 버튼을 주석처리 했으므로, 여기서도 리스트에서 뺍니다.
-// (btn-hand 제거함 -> 에러 방지)
-const btnIds = ['btn-all', 'btn-self', 'btn-notouch', 'btn-detailing'];
+const btnIds = ['btn-all', 'btn-self', 'btn-notouch'];
 
 btnIds.forEach(id => {
-    // 혹시 HTML에 버튼이 없을 수도 있으니 확인 후 이벤트 연결
     var btn = document.getElementById(id);
     if(btn) {
         btn.addEventListener('click', function() {
-            document.querySelectorAll('.tabs button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
             this.classList.add('active'); 
 
             const type = id.replace('btn-', ''); 
@@ -121,16 +136,12 @@ function searchPlaces() {
 }
 
 // ===============================================
-// ★ 내 위치(GPS) 함수 분리
+// ★ 내 위치(GPS)
 // ===============================================
-
-// 버튼 클릭 시 실행
 document.getElementById('gps-btn').addEventListener('click', getMyLocation);
 
-// 실제 위치 가져오는 로직 (자동실행/버튼클릭 공용)
 function getMyLocation() {
     if (navigator.geolocation) {
-        // 아이콘 회전 효과 (버튼이 있을 때만)
         var btn = document.getElementById('gps-btn');
         if(btn) btn.style.transform = "rotate(360deg)";
         
@@ -141,26 +152,20 @@ function getMyLocation() {
                 var locPosition = new kakao.maps.LatLng(lat, lng);
 
                 map.panTo(locPosition);
-                
-                // 내 위치 마커 표시
                 displayMyMarker(locPosition);
                 
                 if(btn) setTimeout(() => { btn.style.transform = "none"; }, 500);
             }, 
             function(error) {
                 console.error(error);
-                // 자동 실행일 때는 에러 메시지를 안 띄우는 게 사용자 경험상 좋습니다.
-                // (차단했을 수도 있으니까요)
                 if(btn) btn.style.transform = "none";
             }
         );
-    } else {
-        // GPS 미지원 브라우저
     }
 }
 
 function displayMyMarker(locPosition) {
-    // 내 위치 마커는 기존 마커 배열(markers)에 넣지 않음 (필터링 때 사라지지 않게)
+    // 내 위치 마커 아이콘 설정 (파란 점)
     var imageSrc = "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png"; 
     var imageSize = new kakao.maps.Size(24, 35); 
     var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize); 
