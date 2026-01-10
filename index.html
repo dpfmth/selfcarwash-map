@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>세차여지도</title>
+    <title>세차여지도 - 내 주변 세차장 찾기</title>
     
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     
@@ -16,30 +16,22 @@
     <div class="top-bar">
         <h1>세차장 찾기</h1>
         
-        <div class="tabs">
-            <button class="active" onclick="filterMap('self', this)">셀프세차장</button>
-            <button onclick="filterMap('notouch', this)">노터치세차장</button>
-            <button onclick="filterMap('detailing', this)">디테일링샵</button>
-            <button onclick="filterMap('hand', this)">손세차장</button>
-        </div>
-
         <div class="search-area">
-            <input type="text" class="search-input" id="searchInput" placeholder="지역 또는 세차장명 검색" onkeyup="handleSearch()">
-            <select class="sort-select" onchange="handleSort(this.value)">
-                <option value="name">이름순</option>
-                <option value="dist">거리순</option>
-            </select>
+            <input type="text" class="search-input" id="search-keyword" placeholder="지역 또는 이름 검색">
+            <button id="search-btn">검색</button>
+        </div>
+
+        <div class="tabs">
+            <button id="btn-all" class="active">전체보기</button>
+            <button id="btn-self">셀프세차</button>
+            <button id="btn-notouch">노터치/자동</button>
+            <button id="btn-detailing">디테일링</button>
+            <button id="btn-hand">손세차</button>
         </div>
     </div>
 
-    <div id="map">
-        <div class="map-placeholder">
-            <p><strong>지도를 불러오려면 API 키가 필요합니다.</strong><br>
-            스크립트 코드를 참고하여 카카오맵 API를 연동하세요.</p>
-        </div>
-    </div>
+    <div id="map"></div>
 
     <script src="script.js"></script>
 </body>
 </html>
-
