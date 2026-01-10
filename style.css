@@ -126,3 +126,70 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
     width: 24px;
     height: 24px;
 }
+/* ------------------------------------------------ */
+/* ★★★ 모바일 최적화 (이 부분을 맨 아래에 꼭 추가하세요) ★★★ */
+/* ------------------------------------------------ */
+@media (max-width: 480px) {
+    /* 1. 상단 박스: 화면 꽉 차게 위로 붙이기 & 둥근 모서리 조정 */
+    .top-bar {
+        left: 0;
+        top: 0;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        border-radius: 0 0 20px 20px; /* 아래쪽만 둥글게 */
+        padding: 15px;
+        box-sizing: border-box; /* 패딩 포함 너비 계산 */
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    /* 2. 제목 폰트 살짝 줄이기 */
+    .top-bar h1 {
+        font-size: 18px;
+        margin-bottom: 12px;
+    }
+
+    /* 3. 검색창과 버튼 간격 좁히기 */
+    .search-area {
+        gap: 6px;
+        margin-bottom: 15px;
+    }
+    .search-input {
+        padding: 10px;
+        font-size: 13px;
+    }
+    #search-btn {
+        padding: 0 12px;
+        font-size: 13px;
+        white-space: nowrap; /* "검색" 글자 줄바꿈 방지 */
+    }
+
+    /* 4. 탭 버튼들 가로 스크롤 가능하게 (버튼 짤림 방지) */
+    .tabs {
+        display: flex;
+        flex-wrap: nowrap; /* 줄바꿈 안 함 */
+        overflow-x: auto; /* 가로 스크롤 허용 */
+        padding-bottom: 5px; /* 스크롤바 공간 살짝 */
+        -webkit-overflow-scrolling: touch; /* 아이폰 부드러운 스크롤 */
+        gap: 6px;
+    }
+    
+    /* 스크롤바 숨김 (디자인 깔끔하게) */
+    .tabs::-webkit-scrollbar {
+        display: none; 
+    }
+
+    .tabs button {
+        flex: 0 0 auto; /* 버튼 크기 줄어들지 않게 고정 */
+        font-size: 12px;
+        padding: 7px 12px;
+    }
+
+    /* 5. GPS 버튼 위치 조정 (손가락 닿기 좋게 조금 위로) */
+    #gps-btn {
+        bottom: 25px;
+        right: 15px;
+        width: 44px;
+        height: 44px;
+    }
+}
