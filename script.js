@@ -10,10 +10,8 @@ var currentOverlay = null;
 
 // 2. 페이지 로드 시 실행 (GPS -> 데이터 로드)
 window.onload = function() {
-    // ① 접속하자마자 GPS 실행 + 지도 확대
-    getMyLocation(); 
+    getMyLocation(); // 접속하자마자 GPS 실행 + 지도 확대
     
-    // ② 데이터 가져오기
     fetch('./data.json')
         .then(res => res.json())
         .then(data => {
@@ -33,7 +31,7 @@ function renderMarkers(dataList) {
         var marker = new kakao.maps.Marker({ map: map, position: position });
         markers.push(marker);
 
-        // 전화번호 HTML 생성 (링크 또는 텍스트)
+        // 전화번호 HTML (링크 또는 텍스트)
         var phoneHtml = shop.phone && shop.phone !== '정보없음' 
             ? `<a href="tel:${shop.phone}" style="color:#555; text-decoration:none;">📞 ${shop.phone}</a>` 
             : `<span style="color:#aaa;">📞 전화번호 없음</span>`;
@@ -68,7 +66,7 @@ function renderMarkers(dataList) {
             content: content, position: position, yAnchor: 1
         });
 
-        // ★ 마커 클릭 이벤트 (포커스 모드: 다른 마커 숨김)
+        // 마커 클릭 이벤트 (포커스 모드)
         kakao.maps.event.addListener(marker, 'click', function() {
             if (currentOverlay) currentOverlay.setMap(null);
             
@@ -84,7 +82,7 @@ function renderMarkers(dataList) {
     });
 }
 
-// 4. 초기화 및 닫기 함수
+// 4. 초기화 및 닫기
 function removeMarkers() {
     markers.forEach(m => m.setMap(null));
     markers = [];
@@ -95,17 +93,15 @@ function closeOverlay() {
         currentOverlay.setMap(null);
         currentOverlay = null;
     }
-    // 오버레이 닫으면 숨겨진 마커들 다시 보이기
+    // 숨겨진 마커들 다시 보이기
     if (markers.length > 0) {
         markers.forEach(m => m.setMap(map));
     }
 }
 
-// 지도 빈 곳 클릭 시 닫기
 kakao.maps.event.addListener(map, 'click', closeOverlay);
 
-
-// 5. 버튼 필터링 (전체, 셀프, 노터치만)
+// 5. 버튼 필터링 (손세차 제외)
 const btnIds = ['btn-all', 'btn-self', 'btn-notouch'];
 
 btnIds.forEach(id => {
@@ -155,13 +151,8 @@ function getMyLocation() {
                 var lng = position.coords.longitude;
                 var locPosition = new kakao.maps.LatLng(lat, lng);
 
-                // 1. 내 위치로 이동
                 map.setCenter(locPosition);
-                
-                // 2. 지도 확대 (레벨 5)
-                map.setLevel(5, {animate: true});
-
-                // 3. 내 위치 마커 표시
+                map.setLevel(5, {animate: true}); // 지도 확대
                 displayMyMarker(locPosition);
                 
                 if(btn) setTimeout(() => { btn.style.transform = "none"; }, 500);
