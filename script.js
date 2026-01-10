@@ -117,3 +117,66 @@ function searchPlaces() {
     
     renderMarkers(result);
 }
+// ===============================================
+// ★ 내 위치(GPS) 이동 기능
+// ===============================================
+
+document.getElementById('gps-btn').addEventListener('click', function() {
+    // 브라우저가 GPS를 지원하는지 확인
+    if (navigator.geolocation) {
+        
+        // 로딩 중임을 알리기 위해 버튼 살짝 회전 (선택사항)
+        var btn = this;
+        btn.style.transform = "rotate(360deg)";
+        
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                // 1. 성공 시: 위도 경도 가져오기
+                var lat = position.coords.latitude;
+                var lng = position.coords.longitude;
+                var locPosition = new kakao.maps.LatLng(lat, lng);
+
+                // 2. 지도 중심을 내 위치로 부드럽게 이동
+                map.panTo(locPosition);
+                
+                // 3. (선택) 내 위치에 파란 점 마커 찍기
+                // 기존 마커들과 헷갈리지 않게 '내 위치'라는 걸 표시
+                var message = '<div style="padding:5px;">🚩 현재 내 위치</div>';
+                displayMarker(locPosition, message);
+                
+                // 버튼 회전 원상복구
+                setTimeout(() => { btn.style.transform = "none"; }, 500);
+            }, 
+            function(error) {
+                // 실패 시
+                console.error(error);
+                alert("내 위치를 가져올 수 없습니다. GPS 설정을 확인해주세요.");
+                btn.style.transform = "none";
+            }
+        );
+        
+    } else {
+        alert("이 브라우저는 GPS를 지원하지 않습니다.");
+    }
+});
+
+// (보조 함수) 내 위치에 간단한 마커 표시하기
+function displayMarker(locPosition, message) {
+    // 내 위치 마커 이미지를 따로 쓰거나, 기본 마커를 사용
+    var marker = new kakao.maps.Marker({  
+        map: map, 
+        position: locPosition
+    }); 
+    
+    var iwContent = message, // 인포윈도우에 표시할 내용
+        iwRemoveable = true;
+
+    var infowindow = new kakao.maps.InfoWindow({
+        content : iwContent,
+        removable : iwRemoveable
+    });
+    
+    infowindow.open(map, marker);
+    
+    // 내 위치 마커는 markers 배열에 넣지 않음 (필터링 때 사라지면 안되니까)
+}
