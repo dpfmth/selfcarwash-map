@@ -77,7 +77,7 @@ body, html {
 }
 .overlay-bubble .close-btn:hover { background: #eee; color: #333; }
 
-/* 태그 디자인 */
+/* 태그 디자인 (빨강/파랑) */
 .tag-red {
     display: inline-block; font-size: 11px; padding: 3px 6px;
     border-radius: 4px; background-color: #fff0f0; color: #e03131;
@@ -89,7 +89,7 @@ body, html {
     border: 1px solid #a5d8ff; font-weight: 600;
 }
 
-/* 5. GPS 버튼 */
+/* 5. GPS 버튼 (Fixed) */
 #gps-btn {
     position: fixed; bottom: 30px; right: 20px; z-index: 999;
     width: 48px; height: 48px; border-radius: 50%; background-color: #fff; border: none;
@@ -102,7 +102,19 @@ body, html {
 #gps-btn:active { transform: translateY(0); }
 #gps-btn svg { width: 24px; height: 24px; }
 
-/* 6. 모바일 최적화 */
+/* 6. 제보하기 버튼 */
+.report-btn {
+    position: fixed; top: 20px; right: 20px; z-index: 100;
+    background-color: #fff; color: #555; padding: 8px 12px;
+    border-radius: 8px; font-size: 12px; font-weight: 600;
+    text-decoration: none; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: 0.2s; border: 1px solid #eee;
+}
+.report-btn:hover {
+    background-color: #f8f9fa; color: #d6336c; transform: translateY(-2px);
+}
+
+/* 7. 모바일 최적화 */
 @media (max-width: 480px) {
     .top-bar {
         left: 0; top: 0; width: 100%; max-width: 100%; margin: 0;
@@ -120,5 +132,11 @@ body, html {
     }
     .tabs::-webkit-scrollbar { display: none; }
     .tabs button { flex: 0 0 auto; font-size: 12px; padding: 7px 12px; }
+    
     #gps-btn { bottom: 25px; right: 15px; width: 44px; height: 44px; }
+    
+    /* 모바일에서 제보 버튼은 아래쪽 GPS 버튼 위로 이동 */
+    .report-btn {
+        top: auto; bottom: 85px; right: 15px;
+    }
 }
