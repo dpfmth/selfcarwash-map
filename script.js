@@ -1,73 +1,119 @@
 // 1. 지도 생성
 var container = document.getElementById('map');
-var options = {
-    center: new kakao.maps.LatLng(36.5, 127.5), // 전국이 다 보이게 중심 설정
-    level: 13 // 전국 뷰 레벨
-};
+var options = { center: new kakao.maps.LatLng(36.5, 127.5), level: 13 };
 var map = new kakao.maps.Map(container, options);
 
-// 2. 마커 이미지를 담을 변수 (유형별 색상 구분 등 필요시 사용)
-// 일단 기본 마커를 사용하거나 커스텀 이미지가 있다면 여기에 정의
+// 전역 변수
+var allData = [];
+var markers = [];
+var currentOverlay = null;
 
-// 3. 인포윈도우 (하나만 만들어서 재사용 - 클릭할 때마다 내용만 바뀜)
-var infowindow = new kakao.maps.InfoWindow({
-    zIndex: 1,
-    removable: true
-});
-
-
-// 4. 데이터 불러오기 및 마커 생성 (핵심 부분)
+// 2. 데이터 로드
 fetch('./data.json')
-    .then(response => response.json())
-    .then(washData => {
-        console.log("데이터 로드 성공, 총 개수:", washData.length);
-
-        // 데이터 개수만큼 반복하며 마커 생성
-        washData.forEach(shop => {
-            
-            // 위도, 경도로 위치 객체 생성
-            var position = new kakao.maps.LatLng(shop.lat, shop.lng);
-
-            // 마커 생성
-            var marker = new kakao.maps.Marker({
-                map: map,
-                position: position,
-                title: shop.name // 마우스 올리면 이름 나옴
-            });
-
-            // 마커 클릭 이벤트 리스너 추가
-            kakao.maps.event.addListener(marker, 'click', function() {
-                
-                // 인포윈도우에 들어갈 HTML 내용 구성
-                var content = `
-                    <div style="padding:10px; min-width:200px; font-size:14px;">
-                        <h4 style="margin:0 0 5px 0;">${shop.name}</h4>
-                        <p style="margin:5px 0;">
-                            <b>유형:</b> ${getTypeName(shop.type)}<br>
-                            <b>영업시간:</b> ${shop.time}<br>
-                            ${shop.foam !== null ? `<b>폼건:</b> ${shop.foam ? '있음' : '없음'}` : ''}
-                        </p>
-                    </div>
-                `;
-
-                // 인포윈도우 내용 설정 및 열기
-                infowindow.setContent(content);
-                infowindow.open(map, marker);
-            });
-        });
-
-    })
-    .catch(error => {
-        console.error("데이터 로드 실패! data.json 파일이 있는지 확인하세요.", error);
-        alert("데이터를 불러오지 못했습니다. 로컬 파일(file://)이 아닌 서버(GitHub 등)에서 실행하세요.");
+    .then(res => res.json())
+    .then(data => {
+        allData = data;
+        renderMarkers(allData); // 초기 실행: 전체 데이터 표시
     });
 
+// 3. 마커 렌더링 함수
+function renderMarkers(dataList) {
+    // 기존 마커 & 오버레이 제거
+    removeMarkers();
+    if (currentOverlay) currentOverlay.setMap(null);
 
-// [보조 함수] 영문 타입 코드를 한글로 변환
-function getTypeName(typeCode) {
-    if (typeCode === 'self') return '셀프세차';
-    if (typeCode === 'notouch') return '노터치/자동';
-    if (typeCode === 'detailing') return '디테일링/광택';
-    if (typeCode === 'hand') return '손세차';
-    return typeCode;
+    dataList.forEach(shop => {
+        var position = new kakao.maps.LatLng(shop.lat, shop.lng);
+        var marker = new kakao.maps.Marker({ map: map, position: position });
+        markers.push(marker);
+
+        // ★★★ 디자인된 말풍선 HTML (style.css와 짝꿍) ★★★
+        var content = `
+            <div class="overlay-bubble">
+                <div class="close-btn" onclick="closeOverlay()">✕</div>
+                <h3>${shop.name}</h3>
+                <p><span class="badge">${getTypeName(shop.type)}</span></p>
+                <p style="color:#888; font-size:12px;">⏰ ${shop.time}</p>
+            </div>
+        `;
+
+        var overlay = new kakao.maps.CustomOverlay({
+            content: content,
+            position: position,
+            yAnchor: 1
+        });
+
+        kakao.maps.event.addListener(marker, 'click', function() {
+            if (currentOverlay) currentOverlay.setMap(null);
+            overlay.setMap(map);
+            currentOverlay = overlay;
+            
+            // (선택) 클릭시 지도가 해당 마커로 부드럽게 이동
+            map.panTo(position);
+        });
+    });
+}
+
+function removeMarkers() {
+    markers.forEach(m => m.setMap(null));
+    markers = [];
+}
+
+function closeOverlay() {
+    if (currentOverlay) {
+        currentOverlay.setMap(null);
+        currentOverlay = null;
+    }
+}
+
+function getTypeName(type) {
+    if (type === 'self') return '셀프세차';
+    if (type === 'notouch') return '노터치/자동';
+    if (type === 'detailing') return '디테일링';
+    if (type === 'hand') return '손세차';
+    return type;
+}
+
+// ===============================================
+// ★ 버튼 활성화(색상 변경) 및 필터링 기능
+// ===============================================
+
+// 버튼 ID 목록
+const btnIds = ['btn-all', 'btn-self', 'btn-notouch', 'btn-detailing', 'btn-hand'];
+
+// 각 버튼에 클릭 이벤트 연결
+btnIds.forEach(id => {
+    document.getElementById(id).addEventListener('click', function() {
+        
+        // 1. 시각적 처리: 모든 버튼의 active 클래스 제거 -> 클릭한 것만 추가
+        document.querySelectorAll('.tabs button').forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active'); 
+
+        // 2. 데이터 필터링 처리
+        // ID에서 'btn-'을 뺀 뒷부분(all, self 등)을 가져옴
+        const type = id.replace('btn-', ''); 
+        
+        if (type === 'all') {
+            renderMarkers(allData);
+        } else {
+            const filtered = allData.filter(item => item.type === type);
+            renderMarkers(filtered);
+        }
+    });
+});
+
+// 검색 기능
+document.getElementById('search-btn').addEventListener('click', searchPlaces);
+document.getElementById('search-keyword').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') searchPlaces();
+});
+
+function searchPlaces() {
+    var keyword = document.getElementById('search-keyword').value.trim();
+    if (!keyword) return alert('검색어를 입력하세요.');
+    
+    var result = allData.filter(d => d.name.includes(keyword));
+    if (result.length === 0) return alert('검색 결과가 없습니다.');
+    
+    renderMarkers(result);
 }
