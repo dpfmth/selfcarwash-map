@@ -1,10 +1,10 @@
 // --- 1. 더미 데이터 ---
 const washData = [
-    { id: 1, name: "워시존 강남점", type: "self", lat: 37.498, lng: 127.027, time: "24시간", foam: true },
-    { id: 2, name: "킹콩샤워 송파", type: "self", lat: 37.514, lng: 127.100, time: "09:00~23:00", foam: false },
-    { id: 3, name: "컴인워시 성수", type: "notouch", lat: 37.544, lng: 127.056, time: "24시간", foam: null },
-    { id: 4, name: "글로스 디테일링", type: "detailing", lat: 37.534, lng: 126.992, time: "10:00~19:00", foam: null },
-    { id: 5, name: "손세차의 달인", type: "hand", lat: 37.524, lng: 127.042, time: "09:00~18:00", foam: null },
+    { id: 1, name: "스팽글세차장 강남점", type: "self", lat: 37.498, lng: 127.027, time: "24시간", foam: true },
+    { id: 2, name: "스팽글세차장 송파", type: "self", lat: 37.514, lng: 127.100, time: "09:00~23:00", foam: false },
+    { id: 3, name: "스팽글세차장 노터치", type: "notouch", lat: 37.544, lng: 127.056, time: "24시간", foam: null },
+    { id: 4, name: "스팽글디테일링센터", type: "detailing", lat: 37.534, lng: 126.992, time: "10:00~19:00", foam: null },
+    { id: 5, name: "스팽글손세차달인", type: "hand", lat: 37.524, lng: 127.042, time: "09:00~18:00", foam: null },
 ];
 
 let currentType = 'self'; // 현재 탭
@@ -89,8 +89,8 @@ function createContent(data) {
     // 셀프 세차장일 때만 폼랜스 표시
     if (data.type === 'self') {
         const foamStatus = data.foam 
-            ? `<span class="foam-lance">✔ 폼랜스 보유</span>` 
-            : `<span style="color:#999">폼랜스 없음</span>`;
+            ? `<span class="foam-lance">✔ 폼랜스 사용가능</span>` 
+            : `<span style="color:#999">폼랜스 사용불가</span>`;
         
         infoHtml = `
             <p>🕒 ${data.time}</p>
@@ -119,3 +119,4 @@ function handleSearch() {
 function handleSort(val) {
     console.log("정렬 기능 준비 중");
 }
+
