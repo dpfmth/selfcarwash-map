@@ -2,177 +2,30 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>세차여지도 - 디테일링포럼</title>
-    <style>
-        :root {
-            --primary-color: #2c3e50;
-            --accent-color: #3498db;
-            --bg-color: #f8f9fa;
-            --sidebar-width: 400px;
-            --header-height: 140px; /* 헤더 영역 높이 */
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Pretendard', 'Noto Sans KR', sans-serif; display: flex; height: 100vh; overflow: hidden; color: #333; }
-        
-        /* 다크모드 변수 */
-        body.dark-mode { --bg-color: #1a1a1a; color: #eee; }
-        body.dark-mode .sidebar { background: #222; border-right-color: #444; }
-        body.dark-mode .card { background: #333; border-color: #444; color: #fff; }
-        body.dark-mode .card:hover { border-color: #3498db; }
-        body.dark-mode .card-title { color: #fff; }
-        body.dark-mode .sidebar-header { background: #222; }
-        body.dark-mode .sidebar-body { background: #222; }
-        body.dark-mode input { background: #333; color: #fff; border-color: #555; }
-        body.dark-mode .brand-link { color: #aaa; border-bottom-color: #444; }
-
-        /* 전체 레이아웃 */
-        .wrapper { display: flex; width: 100%; height: 100%; }
-
-        /* 1. 사이드바 영역 */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: white;
-            border-right: 1px solid #ddd;
-            display: flex;
-            flex-direction: column;
-            z-index: 20;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
-        }
-
-        /* 1-1. 브랜드 네비게이션 & 헤더 */
-        .brand-nav { padding: 0; border-bottom: 1px solid #eee; }
-        .sidebar-header { padding: 15px 20px; }
-        
-        .brand-link {
-            display: block;
-            padding: 12px 20px;
-            font-size: 13px;
-            color: #666;
-            text-decoration: none;
-            background: #f8f9fa;
-            border-bottom: 1px solid #eee;
-            transition: 0.2s;
-        }
-        .brand-link:hover { color: var(--accent-color); background: #f0f8ff; }
-
-        .header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 10px; }
-        
-        .title-area h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; color: #111; display: flex; align-items: center; }
-        .beta-badge {
-            background: #ff5252; color: white; font-size: 10px; padding: 2px 6px; 
-            border-radius: 4px; margin-left: 8px; vertical-align: middle; font-weight: bold;
-        }
-        .desc { font-size: 13px; color: #888; margin-top: 4px; font-weight: 500; }
-
-        /* 아이콘 버튼들 (다크모드, 공유) */
-        .action-buttons { display: flex; gap: 8px; }
-        .icon-btn {
-            background: none; border: 1px solid #eee; border-radius: 8px; 
-            width: 36px; height: 36px; cursor: pointer; color: #555;
-            display: flex; align-items: center; justify-content: center;
-            transition: 0.2s;
-        }
-        .icon-btn:hover { background: #f5f5f5; color: #111; }
-
-        /* 1-2. 검색창 영역 */
-        .sidebar-body { padding: 10px 20px; border-bottom: 1px solid #eee; }
-        .search-box { position: relative; width: 100%; }
-        #search-keyword {
-            width: 100%; padding: 12px 40px 12px 15px;
-            border: 1px solid #ddd; border-radius: 8px;
-            font-size: 15px; outline: none; transition: 0.2s;
-        }
-        #search-keyword:focus { border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1); }
-        #search-btn {
-            position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-            background: none; border: none; cursor: pointer; color: #999;
-        }
-
-        /* 1-3. 리스트 영역 */
-        .place-list { flex: 1; overflow-y: auto; padding: 15px; background: var(--bg-color); }
-
-        /* 카드 스타일 */
-        .card {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            gap: 15px;
-        }
-        .card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: var(--accent-color); }
-        
-        .card-img {
-            width: 90px; height: 90px;
-            border-radius: 8px; object-fit: cover;
-            background: #eee;
-        }
-        .card-info { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
-        .card-title { font-size: 16px; font-weight: bold; margin-bottom: 4px; color: #222; }
-        .card-meta { font-size: 13px; color: #666; margin-bottom: 8px; }
-        .card-bottom { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
-        .price { font-weight: bold; color: var(--primary-color); }
-        
-        .tag { display: inline-block; font-size: 11px; padding: 3px 6px; border-radius: 4px; color: white; margin-right: 5px; font-weight: 600; }
-        .tag.notouch { background-color: #3498db; }
-        .tag.self { background-color: #2ecc71; }
-
-
-        /* 2. 지도 영역 */
-        .map-container { flex: 1; position: relative; }
-        #map { width: 100%; height: 100%; }
-
-        /* GPS 버튼 */
-        #gps-btn {
-            position: absolute; bottom: 30px; right: 30px; z-index: 10;
-            width: 44px; height: 44px; border-radius: 50%;
-            background: white; border: 1px solid #ddd;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            color: #444; transition: 0.2s;
-        }
-        #gps-btn:hover { background: #f8f9fa; color: var(--accent-color); }
-
-        /* 모바일 핸들 (디자인용) */
-        .mobile-handle { display: none; }
-
-        /* 반응형 (모바일) */
-        @media (max-width: 768px) {
-            .wrapper { flex-direction: column; }
-            .sidebar { width: 100%; height: 50vh; order: 2; border-top: 1px solid #ddd; border-radius: 20px 20px 0 0; box-shadow: 0 -4px 20px rgba(0,0,0,0.1); }
-            .map-container { height: 50vh; order: 1; }
-            .mobile-handle { display: block; width: 40px; height: 4px; background: #ddd; border-radius: 2px; margin: 10px auto; }
-            .brand-nav { display: none; } /* 모바일에선 상단 브랜드바 숨김 */
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="wrapper">
     <aside class="sidebar">
         <div class="mobile-handle"></div>
-
         <div class="brand-nav">
             <a href="https://cafe.naver.com/detailingforum" target="_blank" class="brand-link">
                 디테일링 포럼 홈 ↗
             </a>
         </div>
-
         <div class="sidebar-header">
             <div class="header-row">
                 <div class="title-area">
                     <h1>세차여지도 <span class="beta-badge">BETA</span></h1>
                     <p class="desc">디테일링포럼.에르소</p>
                 </div>
-                
                 <div class="action-buttons">
                     <button id="theme-toggle" title="다크모드 전환" class="icon-btn">
                         <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
                     </button>
                     <button id="share-btn" title="공유하기" class="icon-btn">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
@@ -180,18 +33,13 @@
                 </div>
             </div>
         </div>
-
         <div class="sidebar-body">
             <div class="search-box">
                 <input type="text" id="search-keyword" placeholder="지역 또는 세차장 이름 검색">
-                <button id="search-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                </button>
+                <button id="search-btn">🔍</button>
             </div>
         </div>
-
-        <div id="place-list" class="place-list">
-            </div>
+        <div id="place-list" class="place-list"></div>
     </aside>
 
     <main class="map-container">
@@ -202,141 +50,9 @@
     </main>
 </div>
 
-<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_APP_KEY"></script>
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=071678e0af064945d4c2ac55dca44e9c&autoload=false"></script>
 
-<script>
-    let map;
-    let markers = [];
-    let allData = [];
+<script src="script.js"></script>
 
-    // 1. 지도 초기화
-    function initMap() {
-        const container = document.getElementById('map');
-        const options = {
-            center: new kakao.maps.LatLng(37.6583599, 126.8320201), // 고양시 부근
-            level: 7
-        };
-        map = new kakao.maps.Map(container, options);
-    }
-
-    // 2. 데이터 불러오기
-    fetch('./data.json')
-        .then(res => res.json())
-        .then(data => {
-            allData = data;
-            initMap();
-            renderList(allData.slice(0, 50)); // 초기 50개만 표시
-            renderMarkers(allData);           // 마커는 전체 표시
-        })
-        .catch(err => {
-            console.error("데이터 로드 실패:", err);
-            document.getElementById('place-list').innerHTML = 
-                '<p style="text-align:center; padding:20px; color:#999;">data.json 파일을 찾을 수 없습니다.</p>';
-        });
-
-    // 3. 리스트 렌더링
-    function renderList(data) {
-        const container = document.getElementById('place-list');
-        container.innerHTML = '';
-
-        if (data.length === 0) {
-            container.innerHTML = '<p style="text-align:center; padding:40px; color:#999;">검색 결과가 없습니다.</p>';
-            return;
-        }
-
-        const displayData = data.length > 100 ? data.slice(0, 100) : data;
-
-        displayData.forEach(item => {
-            const typeTag = item.type === 'notouch' 
-                ? '<span class="tag notouch">노터치</span>' 
-                : '<span class="tag self">셀프</span>';
-            
-            const imgUrl = item.img || 'https://via.placeholder.com/100';
-
-            const html = `
-                <div class="card" onclick="panTo(${item.lat}, ${item.lng}, '${item.name}')">
-                    <img src="${imgUrl}" class="card-img">
-                    <div class="card-info">
-                        <div>
-                            <div class="card-title">${item.name}</div>
-                            <div class="card-meta">${typeTag} ${item.time}</div>
-                        </div>
-                        <div class="card-bottom">
-                            <span class="price">💰 ${item.price.toLocaleString()}원~</span>
-                            <span style="color:#888;">👍 ${item.likes}</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-            container.innerHTML += html;
-        });
-    }
-
-    // 4. 마커 생성
-    function renderMarkers(data) {
-        markers.forEach(m => m.setMap(null));
-        markers = [];
-
-        data.forEach(item => {
-            if(!item.lat || !item.lng) return;
-
-            const position = new kakao.maps.LatLng(item.lat, item.lng);
-            const marker = new kakao.maps.Marker({
-                position: position,
-                title: item.name
-            });
-
-            marker.setMap(map);
-            markers.push(marker);
-
-            kakao.maps.event.addListener(marker, 'click', function() {
-                // 클릭 시 해당 위치로 이동 및 심플한 인포윈도우
-                map.panTo(position);
-                const infowindow = new kakao.maps.InfoWindow({
-                    content: `<div style="padding:5px; font-size:13px; font-weight:bold;">${item.name}</div>`
-                });
-                infowindow.open(map, marker);
-            });
-        });
-    }
-
-    // 5. 이동 함수
-    function panTo(lat, lng, name) {
-        const moveLatLon = new kakao.maps.LatLng(lat, lng);
-        map.panTo(moveLatLon);
-        // 필요 시 여기서 인포윈도우 등을 추가로 띄울 수 있음
-    }
-
-    // 6. 검색 기능 (키보드 입력 시 실시간)
-    const searchInput = document.getElementById('search-keyword');
-    searchInput.addEventListener('keyup', function() {
-        const keyword = searchInput.value.toLowerCase();
-        const filtered = allData.filter(item => 
-            item.name.toLowerCase().includes(keyword)
-        );
-        renderList(filtered);
-        renderMarkers(filtered);
-    });
-
-    // 7. 다크모드 토글
-    const themeBtn = document.getElementById('theme-toggle');
-    themeBtn.addEventListener('click', () => {
-        document.body.classList.toggle('dark-mode');
-    });
-
-    // 8. 내 위치 이동 (GPS)
-    document.getElementById('gps-btn').addEventListener('click', () => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(position => {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                map.panTo(new kakao.maps.LatLng(lat, lng));
-            });
-        } else {
-            alert("GPS를 지원하지 않는 브라우저입니다.");
-        }
-    });
-
-</script>
 </body>
 </html>
