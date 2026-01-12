@@ -8,41 +8,39 @@
 </head>
 <body>
 
-    <div class="beta-badge">BETA</div>
-
-    <div id="map_wrap">
-        <div id="map"></div>
-
-        <div id="search_box">
-            <input type="text" id="keyword" placeholder="장소 입력 (예: 강남 세차장)" onkeypress="if(event.keyCode==13) {searchPlaces(); return false;}">
-            <button id="btn_search" onclick="searchPlaces()">검색</button>
-        </div>
-
-        <button id="btn_gps" onclick="getCurrentPos()">
-            <span>📍</span> 내 위치
-        </button>
-
+    <div class="layout-container">
+        
         <div id="menu_wrap">
             <div class="list-header">
                 <span>검색 결과</span>
-                <button onclick="toggleList()" class="close-btn">닫기 ✖</button>
+                <button onclick="toggleList()" class="close-btn mobile-only">닫기 ✖</button>
             </div>
             <ul id="placesList"></ul>
             <div id="pagination"></div>
         </div>
-        
-        <div class="mobile-bottom-bar">
-            <button class="nav-btn" onclick="location.reload()">
-                <span>🏠</span>홈
+
+        <div id="map_content">
+            
+            <div class="beta-badge">BETA</div>
+
+            <div id="search_box">
+                <input type="text" id="keyword" placeholder="장소 입력 (예: 강남 세차장)" onkeypress="if(event.keyCode==13) {searchPlaces(); return false;}">
+                <button id="btn_search" onclick="searchPlaces()">검색</button>
+            </div>
+
+            <button id="btn_gps" onclick="getCurrentPos()">
+                <span>📍</span> 내 위치
             </button>
-            <button class="nav-btn" id="btn-share" onclick="shareUrl()">
-                <span>🔗</span>공유
-            </button>
-            <button class="nav-btn" onclick="toggleList()">
-                <span>☰</span>목록
-            </button>
+
+            <div id="map"></div>
+
+            <div class="mobile-bottom-bar mobile-only">
+                <button class="nav-btn" onclick="location.reload()"><span>🏠</span>홈</button>
+                <button class="nav-btn" onclick="shareUrl()"><span>🔗</span>공유</button>
+                <button class="nav-btn" onclick="toggleList()"><span>☰</span>목록</button>
+            </div>
         </div>
-    </div>
+        </div>
 
     <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=071678e0af064945d4c2ac55dca44e9c&libraries=services"></script>
     <script src="script.js"></script>
