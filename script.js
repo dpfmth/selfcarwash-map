@@ -145,19 +145,28 @@ function initMap() {
         }
     }
 
-    // === 6. 지도 빈 곳 클릭 (초기화) ===
+// 6. 지도 빈 곳 클릭 (초기화 및 UI 숨기기)
     kakao.maps.event.addListener(map, 'click', () => {
+        // (1) 열려있는 말풍선(오버레이) 닫기
         if (activeOverlay) {
             activeOverlay.setMap(null);
             activeOverlay = null;
         }
-        applyFilter(activeFilter);
         
-        // 모바일 UX: 시트 중간 복귀
+        // (2) 모바일: 올라와 있던 목록창을 아래로 내리기
         const sidebar = document.getElementById('sidebar');
         if(sidebar) {
+            // 'expanded' 클래스를 제거하면 -> 검색창만 보이는 높이(기본)로 내려갑니다.
             sidebar.classList.remove('expanded');
-            sidebar.classList.remove('collapsed');
+            
+            // 만약 지도 볼 때 검색창도 거슬린다면 아래 주석을 해제하세요 (더 납작하게 만듦)
+            // sidebar.classList.add('collapsed'); 
+        }
+
+        // (3) 키보드 내리기 (검색하다가 지도 누르면 키보드 사라지게)
+        const searchInput = document.getElementById('search-keyword');
+        if(searchInput) {
+            searchInput.blur(); // 포커스 해제
         }
     });
 
@@ -329,3 +338,4 @@ function initMap() {
         });
     }
 }
+
