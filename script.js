@@ -9,7 +9,7 @@ var ps = new kakao.maps.services.Places();
 var infowindow = new kakao.maps.InfoWindow({zIndex:1});
 var markers = []; 
 
-// GPS
+// GPS: 내 위치
 function getCurrentPos() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
@@ -25,7 +25,7 @@ function getCurrentPos() {
     }
 }
 
-// 검색
+// 검색 실행
 function searchPlaces() {
     var keyword = document.getElementById('keyword').value;
     if (!keyword.replace(/^\s+|\s+$/g, '')) {
@@ -35,14 +35,12 @@ function searchPlaces() {
     ps.keywordSearch(keyword, placesSearchCB); 
 }
 
+// 검색 콜백
 function placesSearchCB(data, status, pagination) {
     if (status === kakao.maps.services.Status.OK) {
-        // 모바일: 검색하면 목록 열기
-        if(window.innerWidth <= 768) {
-            document.getElementById('sidebar').style.display = 'flex';
-        }
         displayPlaces(data);
         displayPagination(pagination);
+        // 검색 성공 시, 모바일에서는 리스트가 보이도록 처리하거나 스크롤 이동
     } else if (status === kakao.maps.services.Status.ZERO_RESULT) {
         alert('검색 결과가 없습니다.');
     } else if (status === kakao.maps.services.Status.ERROR) {
@@ -50,6 +48,7 @@ function placesSearchCB(data, status, pagination) {
     }
 }
 
+// 목록 표출
 function displayPlaces(places) {
     var listEl = document.getElementById('placesList'), 
     fragment = document.createDocumentFragment(), 
@@ -72,8 +71,6 @@ function displayPlaces(places) {
             itemEl.onclick = function () {
                 displayInfowindow(marker, title, address, url);
                 map.panTo(marker.getPosition()); 
-                // 모바일에선 클릭 시 목록 닫기 (지도 보라고)
-                if(window.innerWidth <= 768) toggleList();
             };
         })(marker, places[i].place_name, places[i].road_address_name || places[i].address_name, places[i].place_url);
 
@@ -137,25 +134,9 @@ function displayInfowindow(marker, title, address, url) {
     var content = '<div style="padding:10px;z-index:1;min-width:200px;">' +
         '<div style="font-weight:bold;margin-bottom:5px;">' + title + '</div>' +
         '<div style="font-size:12px;color:#555;">' + address + '</div>' +
-        '<a href="' + url + '" target="_blank" style="color:blue;font-size:12px;">상세보기</a></div>';
+        '<a href="' + url + '" target="_blank" style="color:#222;font-size:12px;text-decoration:underline;">상세보기</a></div>';
     infowindow.setContent(content);
     infowindow.open(map, marker);
 }
 
 function removeAllChildNods(el) { while (el.hasChildNodes()) { el.removeChild (el.lastChild); } }
-
-// 공유
-function shareUrl() {
-    var url = window.location.href;
-    navigator.clipboard.writeText(url).then(() => alert("링크 복사 완료!"));
-}
-
-// 목록 토글 (모바일용)
-function toggleList() {
-    var sidebar = document.getElementById('sidebar');
-    if (sidebar.style.display === 'none' || sidebar.style.display === '') {
-        sidebar.style.display = 'flex';
-    } else {
-        sidebar.style.display = 'none';
-    }
-}
