@@ -1,6 +1,3 @@
-// ==========================================
-// 1. 초기 설정 & 지도 생성
-// ==========================================
 var container = document.getElementById('map');
 var options = { center: new kakao.maps.LatLng(36.5, 127.5), level: 13 };
 var map = new kakao.maps.Map(container, options);
@@ -9,47 +6,35 @@ var allData = [];
 var markers = [];
 var currentOverlay = null;
 
-// ==========================================
-// 2. 페이지 로드 시 실행 (메인 로직)
-// ==========================================
 window.onload = function() {
-    initTheme();      // 테마 설정 (다크모드 확인)
-    getMyLocation();  // GPS 바로 실행
-    
+    initTheme();
+    getMyLocation(); 
     fetch('./data.json')
         .then(res => res.json())
         .then(data => {
             allData = data;
-            renderMarkers(allData);
+            renderMarkers(allData); 
         })
         .catch(err => console.error("데이터 로드 실패:", err));
 }
 
-// ==========================================
-// 3. UI/UX 기능 (테마, 공유)
-// ==========================================
 function initTheme() {
     const toggleBtn = document.getElementById('theme-toggle');
     const iconSun = document.querySelector('.icon-sun');
     const iconMoon = document.querySelector('.icon-moon');
-    
-    // 시스템 설정 확인 (다크모드 선호하는지)
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const savedTheme = localStorage.getItem('theme');
     
     if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
         document.documentElement.setAttribute('data-theme', 'dark');
-        iconSun.style.display = 'none';
-        iconMoon.style.display = 'block';
+        iconSun.style.display = 'none'; iconMoon.style.display = 'block';
     }
 
     toggleBtn.addEventListener('click', () => {
         const currentTheme = document.documentElement.getAttribute('data-theme');
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
-        
         if(newTheme === 'dark') {
             iconSun.style.display = 'none'; iconMoon.style.display = 'block';
         } else {
@@ -57,30 +42,18 @@ function initTheme() {
         }
     });
 
-    // 공유하기 버튼
     document.getElementById('share-btn').addEventListener('click', async () => {
-        const shareData = {
-            title: '세차여지도',
-            text: '내 주변 세차장, 여기서 찾아보세요!',
-            url: window.location.href
-        };
         try {
             if (navigator.share) {
-                await navigator.share(shareData);
+                await navigator.share({ title: '세차여지도', text: '내 주변 세차장 찾기', url: window.location.href });
             } else {
-                // PC 등 지원 안하면 클립보드 복사
                 await navigator.clipboard.writeText(window.location.href);
                 alert("주소가 복사되었습니다!");
             }
-        } catch (err) {
-            console.error(err);
-        }
+        } catch (err) { console.error(err); }
     });
 }
 
-// ==========================================
-// 4. 지도 로직 (마커, 오버레이)
-// ==========================================
 function renderMarkers(dataList) {
     removeMarkers(); 
     closeOverlay();
@@ -91,7 +64,7 @@ function renderMarkers(dataList) {
         markers.push(marker);
 
         var phoneHtml = shop.phone && shop.phone !== '정보없음' 
-            ? `<a href="tel:${shop.phone}" style="color:var(--text-sub); text-decoration:none;">📞 ${shop.phone}</a>` 
+            ? `<a href="tel:${shop.phone}">📞 ${shop.phone}</a>` 
             : `<span>📞 전화번호 없음</span>`;
 
         var content = `
@@ -110,10 +83,7 @@ function renderMarkers(dataList) {
             </div>
         `;
         
-        // 오버레이 생성 (HTML 문자열 그대로 사용)
-        var overlay = new kakao.maps.CustomOverlay({
-            content: content, position: position, yAnchor: 1.15
-        });
+        var overlay = new kakao.maps.CustomOverlay({ content: content, position: position, yAnchor: 1.15 });
 
         kakao.maps.event.addListener(marker, 'click', function() {
             if (currentOverlay) currentOverlay.setMap(null);
@@ -125,19 +95,10 @@ function renderMarkers(dataList) {
     });
 }
 
-function removeMarkers() {
-    markers.forEach(m => m.setMap(null));
-    markers = [];
-}
-function closeOverlay() {
-    if (currentOverlay) { currentOverlay.setMap(null); currentOverlay = null; }
-    if (markers.length > 0) markers.forEach(m => m.setMap(map));
-}
+function removeMarkers() { markers.forEach(m => m.setMap(null)); markers = []; }
+function closeOverlay() { if (currentOverlay) { currentOverlay.setMap(null); currentOverlay = null; } if(markers.length > 0) markers.forEach(m => m.setMap(map)); }
 kakao.maps.event.addListener(map, 'click', closeOverlay);
 
-// ==========================================
-// 5. 검색 및 필터
-// ==========================================
 const btnIds = ['btn-all', 'btn-self', 'btn-notouch'];
 btnIds.forEach(id => {
     document.getElementById(id).addEventListener('click', function() {
@@ -150,9 +111,7 @@ btnIds.forEach(id => {
 });
 
 document.getElementById('search-btn').addEventListener('click', searchPlaces);
-document.getElementById('search-keyword').addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') searchPlaces();
-});
+document.getElementById('search-keyword').addEventListener('keypress', function (e) { if (e.key === 'Enter') searchPlaces(); });
 
 function searchPlaces() {
     var keyword = document.getElementById('search-keyword').value.trim();
@@ -162,9 +121,6 @@ function searchPlaces() {
     renderMarkers(result);
 }
 
-// ==========================================
-// 6. GPS 기능
-// ==========================================
 document.getElementById('gps-btn').addEventListener('click', getMyLocation);
 
 function getMyLocation() {
@@ -174,15 +130,10 @@ function getMyLocation() {
         navigator.geolocation.getCurrentPosition(
             function(position) {
                 var loc = new kakao.maps.LatLng(position.coords.latitude, position.coords.longitude);
-                map.setCenter(loc);
-                map.setLevel(5, {animate: true});
-                displayMyMarker(loc);
+                map.setCenter(loc); map.setLevel(5, {animate: true}); displayMyMarker(loc);
                 if(btn) setTimeout(() => { btn.style.transform = "none"; }, 500);
             }, 
-            function(error) {
-                console.error("GPS Error:", error);
-                if(btn) btn.style.transform = "none";
-            }
+            function(error) { console.error("GPS Error:", error); if(btn) btn.style.transform = "none"; }
         );
     }
 }
