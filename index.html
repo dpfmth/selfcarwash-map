@@ -11,27 +11,21 @@
 <body>
 
     <div class="layout-container">
-        <aside class="sidebar">
-            
+        <aside class="sidebar" id="sidebar">
+            <div class="mobile-handle-area">
+                <div class="handle-bar"></div>
+            </div>
+
             <div class="sidebar-header">
                 <div class="brand-info">
-                    <h1>세차여지도</h1>
+                    <h1>세차여지도 <span class="beta-tag">BETA</span></h1>
                     <p class="desc">디테일링포럼.에르소</p>
                 </div>
                 <div class="action-buttons">
-                    <button id="theme-toggle" class="icon-btn" title="테마 변경">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                    </button>
                     <button id="share-btn" class="icon-btn" title="공유하기">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
                     </button>
                 </div>
-            </div>
-
-            <div class="brand-nav">
-                <a href="https://cafe.naver.com/detailingforum" target="_blank" class="brand-link">
-                    디테일링 포럼 바로가기 ↗
-                </a>
             </div>
 
             <div class="search-container">
@@ -50,15 +44,17 @@
             </div>
 
             <div id="place-list" class="place-list">
-                <div class="empty-message">검색어를 입력해주세요.</div>
+                <div class="empty-message">
+                    <p>원하는 지역이나<br>세차장 이름을 검색해보세요.</p>
+                </div>
             </div>
 
             <div class="sidebar-footer">
-                <a href="#" target="_blank" class="report-link">
-                    <div class="link-text">
-                        <span class="title">정보 수정 / 제보하기</span>
-                        <span class="sub">새로운 세차장을 알려주세요</span>
-                    </div>
+                <a href="https://cafe.naver.com/detailingforum" target="_blank" class="brand-link">
+                    디테일링 포럼 바로가기 ↗
+                </a>
+                <a href="#" class="report-link">
+                    정보 수정 / 제보하기
                 </a>
             </div>
         </aside>
