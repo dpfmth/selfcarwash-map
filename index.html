@@ -76,7 +76,74 @@
         </main>
     
     </div>
+<script>
+    let allData = []; // 데이터를 담아둘 전역 변수
 
-    <script src="script.js"></script>
+    // 1. 외부 JSON 파일 불러오기
+    fetch('./data.json')
+        .then(response => response.json())
+        .then(data => {
+            allData = data; // 불러온 데이터를 변수에 저장
+            console.log("데이터 로딩 완료:", allData.length, "개");
+            
+            // 초기 화면엔 50개만 먼저 보여줌 (성능 최적화)
+            renderList(allData.slice(0, 50)); 
+        })
+        .catch(error => {
+            console.error("데이터를 불러오는 중 오류 발생:", error);
+            document.getElementById('list-container').innerHTML = '<p>데이터를 불러오지 못했습니다.</p>';
+        });
+
+
+    // 2. 화면 그리기 함수 (성능을 위해 최대 개수 제한 옵션 추가)
+    function renderList(data) {
+        const container = document.getElementById('list-container');
+        
+        if (data.length === 0) {
+            container.innerHTML = '<p style="text-align:center; padding:20px;">검색 결과가 없습니다.</p>';
+            return;
+        }
+
+        // 데이터가 너무 많으면 브라우저가 멈추므로, 안전장치로 최대 100개까지만 렌더링
+        // (원하시면 이 숫자를 늘려도 되지만, 100개 이상은 페이징 처리가 낫습니다)
+        const displayData = data.length > 100 ? data.slice(0, 100) : data;
+
+        let html = '';
+        displayData.forEach(item => {
+            html += `
+                <div class="card" style="margin-bottom: 15px; border:1px solid #ddd; border-radius:8px; overflow:hidden;">
+                     <img src="${item.img || 'https://via.placeholder.com/300x200?text=No+Image'}" alt="${item.name}" style="width:100%; height:150px; object-fit:cover;">
+                    <div style="padding:15px;">
+                        <h3 style="margin:0 0 10px 0; font-size:18px;">${item.name}</h3>
+                        <p style="margin:5px 0; font-size:14px; color:#666;">
+                            📍 ${item.reservation} | 📞 ${item.phone}<br>
+                            ⏰ ${item.time} | 💰 기본 ${item.price ? item.price.toLocaleString() : 0}원
+                        </p>
+                        <div style="margin-top:10px; font-size:14px;">
+                            👍 ${item.likes} <span style="margin-left:10px;">👎 ${item.dislikes}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+
+    // 3. 검색 기능 (실시간 필터링)
+    const searchInput = document.getElementById('search-input');
+
+    searchInput.addEventListener('keyup', function() {
+        const keyword = searchInput.value.toLowerCase();
+
+        // 전체 데이터(allData)에서 검색
+        const filtered = allData.filter(item => {
+            return item.name && item.name.toLowerCase().includes(keyword);
+        });
+
+        renderList(filtered);
+    });
+</script>
 </body>
 </html>
+
