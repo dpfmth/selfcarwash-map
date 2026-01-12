@@ -137,6 +137,42 @@ body {
     border-width: 10px 8px 0; border-style: solid;
     border-color: #fff transparent transparent transparent;
 }
+/* ... 기존 overlay-card 스타일 아래에 추가 ... */
+
+/* 1. 긴급 공지 박스 (빨간색 알림) */
+.notice-box {
+    background-color: #FFF5F5;
+    border: 1px solid #FFCCCC;
+    color: #E03131;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1.4;
+}
+.notice-box svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+/* 2. 홍보 문구 (타이틀 바로 아래 강조) */
+.promo-text {
+    font-size: 12px;
+    color: #7950F2; /* 보라색 강조 */
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: block;
+}
+
+/* 3. 베이 정보 (기존 info-row 스타일 활용하되 조금 다르게) */
+.info-row.bay-info {
+    color: #333;
+    font-weight: 500;
+}
+.info-row.bay-info svg {
+    color: #339AF0; /* 아이콘 파란색 */
+}
 
 /* 카드 상단 이미지 */
 .card-hero {
@@ -220,3 +256,4 @@ body {
     .overlay-card { width: 280px; bottom: 55px; }
     .card-hero { height: 100px; }
 }
+
