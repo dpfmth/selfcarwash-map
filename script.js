@@ -1,259 +1,242 @@
+// ==========================================
+// 1. 초기 설정 & 지도 생성
+// ==========================================
 var container = document.getElementById('map');
 var options = { center: new kakao.maps.LatLng(36.5, 127.5), level: 13 };
 var map = new kakao.maps.Map(container, options);
 
 var allData = [];
-var filteredData = [];
 var markers = [];
 var currentOverlay = null;
-var myLat = null, myLng = null;
-var userVotes = JSON.parse(localStorage.getItem('userVotes')) || {}; 
 
+// ==========================================
+// 2. 페이지 로드 시 실행 (메인 로직)
+// ==========================================
 window.onload = function() {
-    initTheme();
-    attemptAutoGPS(); 
-    fetch('./data.json').then(res => res.json()).then(data => {
-        allData = data;
-        filteredData = data;
-        renderMarkers(allData);
-        renderList([]); // 초기엔 빈 리스트
-    }).catch(err => console.error(err));
+    initTheme();      // 테마 설정
+    getMyLocation();  // GPS 자동 실행
+    initBottomSheet(); // 모바일 바텀 시트 로직 연결
+    
+    fetch('./data.json')
+        .then(res => res.json())
+        .then(data => {
+            allData = data;
+            renderMarkers(allData);
+        })
+        .catch(err => console.error("데이터 로드 실패:", err));
 }
 
-// 오버레이 표시
-function showOverlay(shop) {
-    var position = new kakao.maps.LatLng(shop.lat, shop.lng);
+// ==========================================
+// 3. UI/UX 기능 (테마, 공유)
+// ==========================================
+function initTheme() {
+    const toggleBtn = document.getElementById('theme-toggle');
+    const iconSun = document.querySelector('.icon-sun');
+    const iconMoon = document.querySelector('.icon-moon');
+    
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('theme');
+    
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        iconSun.style.display = 'none'; iconMoon.style.display = 'block';
+    }
+
+    toggleBtn.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        
+        if(newTheme === 'dark') {
+            iconSun.style.display = 'none'; iconMoon.style.display = 'block';
+        } else {
+            iconSun.style.display = 'block'; iconMoon.style.display = 'none';
+        }
+    });
+
+    // 공유하기
+    document.getElementById('share-btn').addEventListener('click', async () => {
+        const shareData = { title: '세차여지도', text: '내 주변 세차장 찾기', url: window.location.href };
+        try {
+            if (navigator.share) {
+                await navigator.share(shareData);
+            } else {
+                await navigator.clipboard.writeText(window.location.href);
+                alert("주소가 복사되었습니다!");
+            }
+        } catch (err) { console.error(err); }
+    });
+}
+
+// ==========================================
+// 4. 지도 로직 (마커, 오버레이)
+// ==========================================
+function renderMarkers(dataList) {
+    removeMarkers(); 
     closeOverlay();
 
-    var isBest = shop.likes >= 10;
-    var bestBadge = isBest ? '<span class="badge best">🏆 BEST</span>' : '';
-    var imgSrc = shop.img ? shop.img : ''; 
-    var imgHtml = imgSrc ? `<div class="overlay-img-box"><img src="${imgSrc}" class="overlay-img"></div>` : '';
-    var phoneHtml = shop.phone !== '정보없음' ? `<a href="tel:${shop.phone}">📞 ${shop.phone}</a>` : `<span>📞 전화번호 없음</span>`;
-    var myVote = userVotes[shop.id];
-
-    var content = `
-        <div class="overlay-bubble">
-            ${imgHtml}
-            <div class="close-btn" onclick="closeOverlay()">✕</div>
-            <div class="overlay-content">
-                <h3>${shop.name}</h3>
-                <p class="meta-row">
-                    ${bestBadge}
-                    <span class="badge type-${shop.type}">${getTypeName(shop.type)}</span>
-                    ${shop.reservation && shop.reservation !== '필요없음' ? `<span class="badge res">📅 ${shop.reservation}</span>` : ''}
-                </p>
-                <div class="info-row">${phoneHtml}</div>
-                <div class="info-row">⏰ ${shop.time}</div>
-                ${shop.price ? `<div class="info-row">💰 기본 ${shop.price.toLocaleString()}원~</div>` : ''}
-                <div class="tag-row">
-                    ${shop.personal_gear ? '<span class="tag tag-red">개인용품</span>' : ''}
-                    ${shop.foam_lance ? '<span class="tag tag-blue">폼랜스</span>' : ''}
-                </div>
-                <div class="vote-area">
-                    <button class="vote-btn ${myVote === 'like' ? 'active' : ''}" onclick="vote(${shop.id}, 'like')">
-                        👍 좋아요 <span>${shop.likes}</span>
-                    </button>
-                    <button class="vote-btn ${myVote === 'dislike' ? 'active' : ''}" onclick="vote(${shop.id}, 'dislike')">
-                        👎 별로예요 <span>${shop.dislikes}</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-    var overlay = new kakao.maps.CustomOverlay({ content: content, position: position, yAnchor: 1.15, zIndex: 9999 });
-    overlay.setMap(map);
-    currentOverlay = overlay;
-    map.panTo(position);
-}
-
-window.vote = function(id, type) {
-    var shop = allData.find(d => d.id === id);
-    if (!shop) return;
-    var prevVote = userVotes[id];
-    if (prevVote === type) {
-        delete userVotes[id];
-        if (type === 'like') shop.likes--; else shop.dislikes--;
-    } else {
-        if (prevVote === 'like') shop.likes--; if (prevVote === 'dislike') shop.dislikes--;
-        userVotes[id] = type;
-        if (type === 'like') shop.likes++; else shop.dislikes++;
-    }
-    localStorage.setItem('userVotes', JSON.stringify(userVotes));
-    showOverlay(shop); // UI 갱신
-}
-
-function renderList(data) {
-    var listEl = document.getElementById('place-list');
-    listEl.innerHTML = ''; 
-    if (!data || data.length === 0) {
-        listEl.innerHTML = `<div class="empty-state"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ddd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><p>세차장을 검색해보세요!</p></div>`;
-        return;
-    }
-    data.forEach(shop => {
-        var distStr = '';
-        if (myLat && myLng) {
-            var d = getDistance(myLat, myLng, shop.lat, shop.lng);
-            distStr = `<span style="color:#e03131; font-weight:700; margin-left:4px;">${d.toFixed(1)}km</span>`;
-        }
-        var isBest = shop.likes >= 10;
-        var bestBadge = isBest ? '<span class="badge-mini best">BEST</span>' : '';
-        var item = document.createElement('div');
-        item.className = 'place-item';
-        var thumb = shop.img ? shop.img : 'https://via.placeholder.com/80x80?text=No+Image';
-        
-        item.innerHTML = `
-            <div class="place-thumb-box"><img src="${thumb}" class="place-thumb"> ${bestBadge}</div>
-            <div class="place-info">
-                <div class="place-name">${shop.name}</div>
-                <div class="place-meta">${getTypeName(shop.type)} ${distStr}</div>
-                <div class="place-meta">👍 ${shop.likes}명이 추천함</div>
-                <div class="place-tags-mini">${shop.personal_gear ? '<span class="dot red"></span>' : ''}${shop.foam_lance ? '<span class="dot blue"></span>' : ''}</div>
-            </div>
-        `;
-        item.addEventListener('click', () => { showOverlay(shop); });
-        listEl.appendChild(item);
-    });
-}
-
-function getDistance(lat1, lon1, lat2, lon2) {
-    if ((lat1 == lat2) && (lon1 == lon2)) return 0;
-    var radlat1 = Math.PI * lat1/180; var radlat2 = Math.PI * lat2/180;
-    var theta = lon1-lon2; var radtheta = Math.PI * theta/180;
-    var dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
-    if (dist > 1) dist = 1; dist = Math.acos(dist); dist = dist * 180/Math.PI; dist = dist * 60 * 1.1515 * 1.609344;
-    return dist;
-}
-
-function sortData(criteria) {
-    if (filteredData.length === 0) return;
-    if (criteria === 'name') filteredData.sort((a, b) => a.name.localeCompare(b.name));
-    else if (criteria === 'distance') {
-        if (!myLat || !myLng) return alert("GPS 권한이 필요합니다.");
-        filteredData.sort((a, b) => getDistance(myLat, myLng, a.lat, a.lng) - getDistance(myLat, myLng, b.lat, b.lng));
-    }
-    renderList(filteredData);
-}
-
-document.querySelectorAll('.sort-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
-        this.classList.add('active'); sortData(this.dataset.sort);
-    });
-});
-
-function renderMarkers(dataList) {
-    removeMarkers(); closeOverlay();
     dataList.forEach(shop => {
         var position = new kakao.maps.LatLng(shop.lat, shop.lng);
         var marker = new kakao.maps.Marker({ map: map, position: position });
         markers.push(marker);
-        kakao.maps.event.addListener(marker, 'click', function() { showOverlay(shop); });
+
+        var phoneHtml = shop.phone && shop.phone !== '정보없음' 
+            ? `<a href="tel:${shop.phone}">📞 ${shop.phone}</a>` 
+            : `<span>📞 전화번호 없음</span>`;
+
+        var content = `
+            <div class="overlay-bubble">
+                <div class="close-btn" onclick="closeOverlay()">✕</div>
+                <h3>${shop.name}</h3>
+                <p style="margin-bottom: 6px;">
+                    <span class="badge" style="background:var(--accent-color); color:var(--accent-text); padding:2px 6px; border-radius:4px; font-size:11px;">${getTypeName(shop.type)}</span>
+                </p>
+                <p>${phoneHtml}</p>
+                <p>⏰ ${shop.time}</p>
+                <div style="display:flex; gap:4px; flex-wrap:wrap; margin-top:8px;">
+                    ${shop.personal_gear ? '<span class="tag-red">개인용품</span>' : ''}
+                    ${shop.foam_lance ? '<span class="tag-blue">폼랜스</span>' : ''}
+                </div>
+            </div>
+        `;
+        
+        var overlay = new kakao.maps.CustomOverlay({
+            content: content, position: position, yAnchor: 1.15
+        });
+
+        // 마커 클릭 시
+        kakao.maps.event.addListener(marker, 'click', function() {
+            if (currentOverlay) currentOverlay.setMap(null);
+            markers.forEach(m => { if (m !== marker) m.setMap(null); }); // 포커스 모드
+            overlay.setMap(map);
+            currentOverlay = overlay;
+            map.panTo(position);
+            
+            // ★ 모바일: 마커 누르면 지도 잘 보이게 시트 내리기
+            collapseSidebar(); 
+        });
     });
 }
-function removeMarkers() { markers.forEach(m => m.setMap(null)); markers = []; }
-function closeOverlay() { if (currentOverlay) { currentOverlay.setMap(null); currentOverlay = null; } }
-kakao.maps.event.addListener(map, 'click', closeOverlay);
 
+function removeMarkers() { markers.forEach(m => m.setMap(null)); markers = []; }
+function closeOverlay() { 
+    if (currentOverlay) { currentOverlay.setMap(null); currentOverlay = null; }
+    if (markers.length > 0) markers.forEach(m => m.setMap(map));
+}
+
+// 지도 빈 곳 클릭 시 오버레이 닫기 & 시트 내리기
+kakao.maps.event.addListener(map, 'click', function() {
+    closeOverlay();
+    collapseSidebar();
+});
+
+// ==========================================
+// 5. 검색 및 필터
+// ==========================================
 const btnIds = ['btn-all', 'btn-self', 'btn-notouch'];
 btnIds.forEach(id => {
     document.getElementById(id).addEventListener('click', function() {
         document.querySelectorAll('.filter-tabs button').forEach(b => b.classList.remove('active'));
         this.classList.add('active'); 
         const type = id.replace('btn-', ''); 
-        if (type === 'all') filteredData = allData;
-        else filteredData = allData.filter(item => item.type === type);
-        renderMarkers(filteredData); renderList(filteredData);
+        if (type === 'all') renderMarkers(allData);
+        else renderMarkers(allData.filter(item => item.type === type));
     });
+});
+
+document.getElementById('search-btn').addEventListener('click', searchPlaces);
+document.getElementById('search-keyword').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') searchPlaces();
 });
 
 function searchPlaces() {
     var keyword = document.getElementById('search-keyword').value.trim();
-    if (!keyword) { renderList([]); return; }
-    filteredData = allData.filter(d => d.name.includes(keyword));
-    if (filteredData.length === 0) { renderList([]); alert('검색 결과가 없습니다.'); } 
-    else { renderMarkers(filteredData); renderList(filteredData); }
-}
-document.getElementById('search-btn').addEventListener('click', searchPlaces);
-document.getElementById('search-keyword').addEventListener('keypress', function (e) { if (e.key === 'Enter') searchPlaces(); });
-
-function attemptAutoGPS() { if (navigator.geolocation) navigator.geolocation.getCurrentPosition((pos) => successGPS(pos), (err) => console.log("GPS Fail")); }
-document.getElementById('gps-btn').addEventListener('click', function() {
-    if (!navigator.geolocation) return alert("GPS 미지원");
-    var btn = this; btn.style.transform = "rotate(360deg)";
-    navigator.geolocation.getCurrentPosition((pos) => successGPS(pos), (err) => {
-        btn.style.transform = "none";
-        alert(err.code === 1 ? "권한 거부" : "위치 확인 실패 (HTTPS 필요)");
-    }, { enableHighAccuracy: true, timeout: 10000 });
-});
-function successGPS(position) {
-    myLat = position.coords.latitude; myLng = position.coords.longitude;
-    var loc = new kakao.maps.LatLng(myLat, myLng);
-    map.setCenter(loc); map.setLevel(5, {animate: true});
-    var marker = new kakao.maps.Marker({ map: map, position: loc, title: "내 위치", image: new kakao.maps.MarkerImage("https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png", new kakao.maps.Size(24, 35)) });
-    if (filteredData.length > 0) renderList(filteredData);
-    var btn = document.getElementById('gps-btn'); if(btn) setTimeout(() => { btn.style.transform = "none"; }, 500);
-}
-
-function getTypeName(type) { if (type === 'self') return '셀프세차'; if (type === 'notouch') return '노터치/자동'; return type; }
-function initTheme() {
-    const toggleBtn = document.getElementById('theme-toggle');
-    const iconSun = document.querySelector('.icon-sun');
-    const iconMoon = document.querySelector('.icon-moon');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) { document.documentElement.setAttribute('data-theme', 'dark'); iconSun.style.display = 'none'; iconMoon.style.display = 'block'; }
-    toggleBtn.addEventListener('click', () => {
-        const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        if(newTheme === 'dark') { iconSun.style.display = 'none'; iconMoon.style.display = 'block'; }
-        else { iconSun.style.display = 'block'; iconMoon.style.display = 'none'; }
-    });
-    document.getElementById('share-btn').addEventListener('click', async () => {
-        try { if (navigator.share) await navigator.share({ title: '세차여지도', url: window.location.href });
-              else { await navigator.clipboard.writeText(window.location.href); alert("주소 복사 완료!"); } } catch (err) {}
-    });
-}
-// ==========================================
-// 7. 모바일 바텀 시트 동작 (추가됨)
-// ==========================================
-const sidebar = document.querySelector('.sidebar');
-const searchInput = document.getElementById('search-keyword');
-const mapArea = document.getElementById('map');
-const handle = document.querySelector('.mobile-handle');
-
-// 1) 검색창 누르면 -> 시트 확장
-searchInput.addEventListener('focus', () => {
+    if (!keyword) return alert('검색어를 입력하세요.');
+    var result = allData.filter(d => d.name.includes(keyword));
+    if (result.length === 0) return alert('검색 결과가 없습니다.');
+    renderMarkers(result);
+    
+    // ★ 검색 성공 시 결과 목록을 보여주기 위해 시트 확장
     expandSidebar();
-});
+}
 
-// 2) 지도(빈 공간) 누르면 -> 시트 축소
-// (카카오맵 클릭 이벤트 활용)
-kakao.maps.event.addListener(map, 'click', function() {
-    collapseSidebar();
-});
+// ==========================================
+// 6. GPS 기능
+// ==========================================
+document.getElementById('gps-btn').addEventListener('click', getMyLocation);
 
-// 3) 손잡이 눌러도 확장/축소 토글
-if(handle) {
-    handle.addEventListener('click', () => {
-        if(sidebar.classList.contains('expanded')) {
-            collapseSidebar();
-        } else {
-            expandSidebar();
-        }
+function getMyLocation() {
+    if (navigator.geolocation) {
+        var btn = document.getElementById('gps-btn');
+        if(btn) btn.style.transform = "rotate(360deg)";
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                var loc = new kakao.maps.LatLng(position.coords.latitude, position.coords.longitude);
+                map.setCenter(loc);
+                map.setLevel(5, {animate: true});
+                displayMyMarker(loc);
+                if(btn) setTimeout(() => { btn.style.transform = "none"; }, 500);
+            }, 
+            function(error) {
+                console.error("GPS Error:", error);
+                if(btn) btn.style.transform = "none";
+            }
+        );
+    }
+}
+
+function displayMyMarker(loc) {
+    var imageSrc = "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png"; 
+    var markerImage = new kakao.maps.MarkerImage(imageSrc, new kakao.maps.Size(24, 35)); 
+    new kakao.maps.Marker({ map: map, position: loc, image : markerImage, title: "내 위치" });
+}
+
+function getTypeName(type) {
+    if (type === 'self') return '셀프세차';
+    if (type === 'notouch') return '노터치/자동';
+    return type;
+}
+
+// ==========================================
+// 7. 모바일 인터랙티브 바텀 시트 (핵심 로직)
+// ==========================================
+function initBottomSheet() {
+    const sidebar = document.querySelector('.sidebar');
+    const searchInput = document.getElementById('search-keyword');
+    const handle = document.querySelector('.mobile-handle');
+
+    // 1) 검색창 포커스 -> 시트 확장
+    searchInput.addEventListener('focus', () => {
+        expandSidebar();
     });
+
+    // 2) 손잡이 클릭 -> 토글
+    if(handle) {
+        handle.addEventListener('click', () => {
+            if(sidebar.classList.contains('expanded')) {
+                collapseSidebar();
+            } else {
+                expandSidebar();
+            }
+        });
+    }
 }
 
-// 함수: 시트 올리기
 function expandSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    if (!sidebar) return;
     sidebar.classList.add('expanded');
-    document.body.classList.add('sheet-open'); // GPS 버튼 이동용
+    document.body.classList.add('sheet-open');
 }
 
-// 함수: 시트 내리기
 function collapseSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const searchInput = document.getElementById('search-keyword');
+    if (!sidebar) return;
+    
     sidebar.classList.remove('expanded');
     document.body.classList.remove('sheet-open');
-    searchInput.blur(); // 키보드 내리기
+    if(searchInput) searchInput.blur(); // 키보드 내리기
 }
