@@ -122,13 +122,14 @@ body {
     display: flex; justify-content: center; align-items: center;
 }
 
-/* === 오버레이 카드 디자인 (스크린샷 스타일) === */
+/* === 확장형 오버레이 카드 디자인 === */
 .overlay-card {
-    background: #fff; border-radius: 16px; padding: 20px;
-    width: 260px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-    position: relative; bottom: 50px; text-align: left;
+    background: #fff; border-radius: 16px; width: 300px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+    position: relative; bottom: 60px; text-align: left;
+    overflow: hidden; display: flex; flex-direction: column;
     font-family: "Pretendard", sans-serif;
-    animation: fadeInUp 0.3s ease;
+    animation: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .overlay-card::after {
     content: ''; position: absolute; bottom: -10px; left: 50%;
@@ -137,43 +138,63 @@ body {
     border-color: #fff transparent transparent transparent;
 }
 
-.card-header {
-    display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;
+/* 카드 상단 이미지 */
+.card-hero {
+    height: 120px; background-color: #eee;
+    background-size: cover; background-position: center; position: relative;
 }
-.card-header h3 { font-size: 17px; font-weight: 800; color: #222; margin: 0; line-height: 1.3; }
+.card-hero::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.3), transparent);
+}
 .close-btn {
-    background: none; border: none; cursor: pointer; padding: 0; color: #999; margin-left: 10px;
+    position: absolute; top: 12px; right: 12px;
+    background: rgba(0,0,0,0.4); border: none;
+    width: 28px; height: 28px; border-radius: 50%;
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; backdrop-filter: blur(4px);
 }
 
-.type-badge {
-    display: inline-block; background: #333; color: #fff;
-    font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px; margin-bottom: 12px;
+/* 카드 본문 */
+.card-body { padding: 16px 20px; }
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+.place-title { font-size: 18px; font-weight: 800; color: #222; margin: 0; line-height: 1.3; }
+.place-type {
+    font-size: 11px; font-weight: 600; color: #666;
+    background: #f0f0f0; padding: 3px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle;
 }
 
-.info-row {
-    display: flex; align-items: center; gap: 8px;
-    margin-bottom: 6px; font-size: 13px; color: #666;
-}
-.info-row svg { width: 14px; height: 14px; color: #999; }
+.card-meta { font-size: 13px; color: #555; margin-bottom: 12px; display: flex; gap: 8px; align-items: center; }
+.star-rating { color: #FFB800; font-weight: 700; display: flex; align-items: center; gap: 2px; }
 
-.tag-row { display: flex; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
+.info-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 13px; color: #444; }
+.info-row svg { width: 15px; height: 15px; color: #999; flex-shrink: 0; }
+
+.tag-row { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
 .feature-tag {
-    font-size: 11px; font-weight: 600; padding: 5px 8px; border-radius: 6px;
-    border: 1px solid #ddd; background: #fff;
+    font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px; border: 1px solid #eee;
 }
-.feature-tag.personal { color: #FF5A5A; border-color: #FFCBCB; background-color: #FFF5F5; }
-.feature-tag.foam { color: #007AFF; border-color: #CCE4FF; background-color: #F0F7FF; }
+.feature-tag.personal { color: #E53935; background: #FFEBEE; border-color: #FFCDD2; }
+.feature-tag.foam { color: #1E88E5; background: #E3F2FD; border-color: #BBDEFB; }
+.feature-tag.booking { color: #43A047; background: #E8F5E9; border-color: #C8E6C9; }
+
+/* 액션 버튼 */
+.action-bar { display: flex; border-top: 1px solid #eee; margin-top: 16px; padding-top: 16px; gap: 10px; }
+.action-btn {
+    flex: 1; border: none; border-radius: 8px; padding: 10px 0;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.action-btn.call { background: #F5F7F9; color: #333; }
+.action-btn.route { background: #333; color: #fff; }
 
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
 
 /* === 모바일 반응형 === */
 @media screen and (max-width: 768px) {
     .layout-container { display: block; position: relative; }
     
-    .map-container {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
-    }
+    .map-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
     
     #gps-btn { bottom: 200px; right: 20px; transition: bottom 0.3s; }
 
@@ -194,4 +215,8 @@ body {
         cursor: grab; background: #fff; border-radius: 24px 24px 0 0;
     }
     .handle-bar { width: 40px; height: 5px; background: #E0E0E0; border-radius: 10px; }
+    
+    /* 모바일에서 카드 너비 조정 */
+    .overlay-card { width: 280px; bottom: 55px; }
+    .card-hero { height: 100px; }
 }
