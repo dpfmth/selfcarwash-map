@@ -1,89 +1,137 @@
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // 1. 지도 초기화
-    const container = document.getElementById('map');
-    const options = {
-        center: new kakao.maps.LatLng(37.566826, 126.9786567), // 기본 위치: 서울시청
-        level: 3
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. 지도 생성
+    const mapContainer = document.getElementById('map');
+    const mapOption = {
+        center: new kakao.maps.LatLng(37.566826, 126.9786567),
+        level: 8
     };
     
     let map;
     try {
-        map = new kakao.maps.Map(container, options);
-        // 줌 컨트롤 추가
-        const zoomControl = new kakao.maps.ZoomControl();
-        map.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
-    } catch (e) {
-        console.error("Kakao Map Load Failed:", e);
+        map = new kakao.maps.Map(mapContainer, mapOption);
+    } catch(e) {
+        console.error("Map Load Error:", e);
     }
 
-    // 2. JSON 데이터 불러오기 및 리스트 생성
+    let allData = [];
+    let currentOverlay = null; // 현재 열린 버블 관리용
+
+    // 2. JSON 데이터 불러오기
     fetch('./data.json')
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
-            const listContainer = document.getElementById('placeList');
+            allData = data;
+        });
+
+    // 3. 검색 기능
+    const searchInput = document.getElementById('search-keyword');
+    const searchBtn = document.getElementById('search-btn');
+
+    function performSearch() {
+        const keyword = searchInput.value.trim();
+        if (!keyword) {
+            alert("검색어를 입력해주세요.");
+            return;
+        }
+
+        const results = allData.filter(item => 
+            item.name.includes(keyword) || item.address.includes(keyword)
+        );
+        
+        renderList(results);
+    }
+
+    // 엔터키 및 버튼 클릭 이벤트
+    searchInput.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') performSearch();
+    });
+    searchBtn.addEventListener('click', performSearch);
+
+    // 4. 리스트 렌더링
+    function renderList(items) {
+        const listEl = document.getElementById('place-list');
+        listEl.innerHTML = ''; // 초기화
+
+        if (items.length === 0) {
+            listEl.innerHTML = '<div class="empty-message">검색 결과가 없습니다.</div>';
+            return;
+        }
+
+        items.forEach(item => {
+            const el = document.createElement('div');
+            el.className = 'place-item';
+            el.innerHTML = `
+                <img src="${item.img}" alt="img">
+                <div class="place-info">
+                    <h3>${item.name}</h3>
+                    <div class="meta">
+                        <span class="badge ${item.type}">${item.type === 'self' ? '셀프' : '노터치'}</span>
+                        <span class="price">${item.price.toLocaleString()}원~</span>
+                    </div>
+                </div>
+            `;
             
-            data.forEach(place => {
-                const item = document.createElement('div');
-                item.className = 'list-item';
-                item.innerHTML = `
-                    <div class="place-name">${place.name}</div>
-                    <div class="place-addr">${place.address}</div>
-                `;
-                
-                // 리스트 클릭 시 지도 이동 이벤트
-                item.addEventListener('click', () => {
-                    if (map) {
-                        const moveLatLon = new kakao.maps.LatLng(place.lat, place.lng);
-                        map.panTo(moveLatLon);
-                        
-                        // 마커 표시
-                        new kakao.maps.Marker({
-                            map: map,
-                            position: moveLatLon
-                        });
-                    }
-                });
-
-                listContainer.appendChild(item);
+            // 클릭 시 지도 이동 및 버블 표시
+            el.addEventListener('click', () => {
+                showLocationOnMap(item);
             });
-        })
-        .catch(error => console.error('Error loading JSON:', error));
 
-    // 3. GPS 기능
-    const gpsBtn = document.getElementById('gpsButton');
-    gpsBtn.addEventListener('click', function() {
+            listEl.appendChild(el);
+        });
+    }
+
+    // 5. 지도 이동 및 버블 표시 함수
+    function showLocationOnMap(item) {
+        if (!map) return;
+
+        const loc = new kakao.maps.LatLng(item.lat, item.lng);
+        
+        // 지도 이동
+        map.setCenter(loc);
+        map.setLevel(4);
+
+        // 기존 버블 닫기
+        if (currentOverlay) currentOverlay.setMap(null);
+
+        // 새 버블 내용
+        const content = `
+            <div class="custom-overlay">
+                <div class="overlay-name">${item.name}</div>
+                <div class="overlay-price">${item.price.toLocaleString()}원</div>
+            </div>
+        `;
+
+        // 커스텀 오버레이 생성
+        const overlay = new kakao.maps.CustomOverlay({
+            position: loc,
+            content: content,
+            yAnchor: 1
+        });
+        
+        overlay.setMap(map);
+        currentOverlay = overlay;
+    }
+
+    // 6. GPS 버튼
+    const gpsBtn = document.getElementById('gps-btn');
+    gpsBtn.addEventListener('click', () => {
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function(position) {
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
-                
-                if(map) {
-                    const locPosition = new kakao.maps.LatLng(lat, lon);
-                    map.setCenter(locPosition);
-                    
-                    // 현재 위치 마커 (단순화)
-                    new kakao.maps.Marker({
-                        map: map,
-                        position: locPosition
-                    });
-                }
-            }, function(error) {
-                console.error(error);
-                alert("위치 정보를 가져올 수 없습니다.");
+            navigator.geolocation.getCurrentPosition(pos => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                const loc = new kakao.maps.LatLng(lat, lng);
+                map.setCenter(loc);
+                map.setLevel(5);
             });
-        } else {
-            alert("GPS를 지원하지 않는 브라우저입니다.");
         }
     });
 
-    // 4. 필터 버튼 UI 액션
-    const filterBtns = document.querySelectorAll('.filter-btn');
+    // 7. 필터 탭 UI (동작 로직은 필요시 추가)
+    const filterBtns = document.querySelectorAll('.filter-tabs button');
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            filterBtns.forEach(b => b.classList.remove('active'));
+            document.querySelector('.filter-tabs .active').classList.remove('active');
             btn.classList.add('active');
-            // 추후 필터링 로직 추가 가능
         });
     });
 });
