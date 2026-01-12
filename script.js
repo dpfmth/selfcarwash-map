@@ -1,6 +1,3 @@
-// ==========================================
-// 1. 초기 설정 & 지도 생성
-// ==========================================
 var container = document.getElementById('map');
 var options = { center: new kakao.maps.LatLng(36.5, 127.5), level: 13 };
 var map = new kakao.maps.Map(container, options);
@@ -9,31 +6,20 @@ var allData = [];
 var markers = [];
 var currentOverlay = null;
 
-// ==========================================
-// 2. 페이지 로드 시 실행 (메인 로직)
-// ==========================================
 window.onload = function() {
-    initTheme();      // 테마 설정
-    getMyLocation();  // GPS 자동 실행
-    initBottomSheet(); // 모바일 바텀 시트 로직 연결
-    
+    initTheme();
+    getMyLocation(); 
+    initBottomSheet();
     fetch('./data.json')
         .then(res => res.json())
-        .then(data => {
-            allData = data;
-            renderMarkers(allData);
-        })
-        .catch(err => console.error("데이터 로드 실패:", err));
+        .then(data => { allData = data; renderMarkers(allData); })
+        .catch(err => console.error(err));
 }
 
-// ==========================================
-// 3. UI/UX 기능 (테마, 공유)
-// ==========================================
 function initTheme() {
     const toggleBtn = document.getElementById('theme-toggle');
     const iconSun = document.querySelector('.icon-sun');
     const iconMoon = document.querySelector('.icon-moon');
-    
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const savedTheme = localStorage.getItem('theme');
     
@@ -45,10 +31,8 @@ function initTheme() {
     toggleBtn.addEventListener('click', () => {
         const currentTheme = document.documentElement.getAttribute('data-theme');
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
-        
         if(newTheme === 'dark') {
             iconSun.style.display = 'none'; iconMoon.style.display = 'block';
         } else {
@@ -56,23 +40,14 @@ function initTheme() {
         }
     });
 
-    // 공유하기
     document.getElementById('share-btn').addEventListener('click', async () => {
-        const shareData = { title: '세차여지도', text: '내 주변 세차장 찾기', url: window.location.href };
         try {
-            if (navigator.share) {
-                await navigator.share(shareData);
-            } else {
-                await navigator.clipboard.writeText(window.location.href);
-                alert("주소가 복사되었습니다!");
-            }
+            if (navigator.share) await navigator.share({ title: '세차여지도', text: '내 주변 세차장 찾기', url: window.location.href });
+            else { await navigator.clipboard.writeText(window.location.href); alert("주소가 복사되었습니다!"); }
         } catch (err) { console.error(err); }
     });
 }
 
-// ==========================================
-// 4. 지도 로직 (마커, 오버레이)
-// ==========================================
 function renderMarkers(dataList) {
     removeMarkers(); 
     closeOverlay();
@@ -102,39 +77,23 @@ function renderMarkers(dataList) {
             </div>
         `;
         
-        var overlay = new kakao.maps.CustomOverlay({
-            content: content, position: position, yAnchor: 1.15
-        });
+        var overlay = new kakao.maps.CustomOverlay({ content: content, position: position, yAnchor: 1.15 });
 
-        // 마커 클릭 시
         kakao.maps.event.addListener(marker, 'click', function() {
             if (currentOverlay) currentOverlay.setMap(null);
-            markers.forEach(m => { if (m !== marker) m.setMap(null); }); // 포커스 모드
+            markers.forEach(m => { if (m !== marker) m.setMap(null); });
             overlay.setMap(map);
             currentOverlay = overlay;
             map.panTo(position);
-            
-            // ★ 모바일: 마커 누르면 지도 잘 보이게 시트 내리기
-            collapseSidebar(); 
+            collapseSidebar(); // 모바일: 마커 누르면 시트 내리기
         });
     });
 }
 
 function removeMarkers() { markers.forEach(m => m.setMap(null)); markers = []; }
-function closeOverlay() { 
-    if (currentOverlay) { currentOverlay.setMap(null); currentOverlay = null; }
-    if (markers.length > 0) markers.forEach(m => m.setMap(map));
-}
+function closeOverlay() { if (currentOverlay) { currentOverlay.setMap(null); currentOverlay = null; } if(markers.length > 0) markers.forEach(m => m.setMap(map)); }
+kakao.maps.event.addListener(map, 'click', function() { closeOverlay(); collapseSidebar(); });
 
-// 지도 빈 곳 클릭 시 오버레이 닫기 & 시트 내리기
-kakao.maps.event.addListener(map, 'click', function() {
-    closeOverlay();
-    collapseSidebar();
-});
-
-// ==========================================
-// 5. 검색 및 필터
-// ==========================================
 const btnIds = ['btn-all', 'btn-self', 'btn-notouch'];
 btnIds.forEach(id => {
     document.getElementById(id).addEventListener('click', function() {
@@ -147,9 +106,7 @@ btnIds.forEach(id => {
 });
 
 document.getElementById('search-btn').addEventListener('click', searchPlaces);
-document.getElementById('search-keyword').addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') searchPlaces();
-});
+document.getElementById('search-keyword').addEventListener('keypress', function (e) { if (e.key === 'Enter') searchPlaces(); });
 
 function searchPlaces() {
     var keyword = document.getElementById('search-keyword').value.trim();
@@ -157,14 +114,9 @@ function searchPlaces() {
     var result = allData.filter(d => d.name.includes(keyword));
     if (result.length === 0) return alert('검색 결과가 없습니다.');
     renderMarkers(result);
-    
-    // ★ 검색 성공 시 결과 목록을 보여주기 위해 시트 확장
-    expandSidebar();
+    expandSidebar(); // 검색 시 시트 올리기
 }
 
-// ==========================================
-// 6. GPS 기능
-// ==========================================
 document.getElementById('gps-btn').addEventListener('click', getMyLocation);
 
 function getMyLocation() {
@@ -174,15 +126,10 @@ function getMyLocation() {
         navigator.geolocation.getCurrentPosition(
             function(position) {
                 var loc = new kakao.maps.LatLng(position.coords.latitude, position.coords.longitude);
-                map.setCenter(loc);
-                map.setLevel(5, {animate: true});
-                displayMyMarker(loc);
+                map.setCenter(loc); map.setLevel(5, {animate: true}); displayMyMarker(loc);
                 if(btn) setTimeout(() => { btn.style.transform = "none"; }, 500);
             }, 
-            function(error) {
-                console.error("GPS Error:", error);
-                if(btn) btn.style.transform = "none";
-            }
+            function(error) { console.error("GPS Error:", error); if(btn) btn.style.transform = "none"; }
         );
     }
 }
@@ -199,44 +146,27 @@ function getTypeName(type) {
     return type;
 }
 
-// ==========================================
-// 7. 모바일 인터랙티브 바텀 시트 (핵심 로직)
-// ==========================================
+// 모바일 바텀 시트 로직
 function initBottomSheet() {
-    const sidebar = document.querySelector('.sidebar');
     const searchInput = document.getElementById('search-keyword');
     const handle = document.querySelector('.mobile-handle');
-
-    // 1) 검색창 포커스 -> 시트 확장
-    searchInput.addEventListener('focus', () => {
-        expandSidebar();
-    });
-
-    // 2) 손잡이 클릭 -> 토글
+    const sidebar = document.querySelector('.sidebar');
+    
+    if(searchInput) searchInput.addEventListener('focus', expandSidebar);
     if(handle) {
         handle.addEventListener('click', () => {
-            if(sidebar.classList.contains('expanded')) {
-                collapseSidebar();
-            } else {
-                expandSidebar();
-            }
+            if(sidebar.classList.contains('expanded')) collapseSidebar();
+            else expandSidebar();
         });
     }
 }
-
 function expandSidebar() {
     const sidebar = document.querySelector('.sidebar');
-    if (!sidebar) return;
-    sidebar.classList.add('expanded');
-    document.body.classList.add('sheet-open');
+    if(sidebar) { sidebar.classList.add('expanded'); document.body.classList.add('sheet-open'); }
 }
-
 function collapseSidebar() {
     const sidebar = document.querySelector('.sidebar');
     const searchInput = document.getElementById('search-keyword');
-    if (!sidebar) return;
-    
-    sidebar.classList.remove('expanded');
-    document.body.classList.remove('sheet-open');
-    if(searchInput) searchInput.blur(); // 키보드 내리기
+    if(sidebar) { sidebar.classList.remove('expanded'); document.body.classList.remove('sheet-open'); }
+    if(searchInput) searchInput.blur();
 }
