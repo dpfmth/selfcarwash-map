@@ -10,7 +10,7 @@ body, html {
 #map_wrap { position: relative; width: 100%; height: 100%; }
 #map { width: 100%; height: 100%; position: relative; }
 
-/* [스타일 유지] BETA 뱃지 */
+/* BETA 뱃지 */
 .beta-badge {
     position: absolute;
     top: 10px;
@@ -44,7 +44,7 @@ body, html {
 #keyword { flex: 1; border: none; outline: none; padding: 5px 10px; font-size: 15px;}
 #btn_search { background: #2c3e50; color: white; border: none; border-radius: 20px; padding: 0 15px; cursor: pointer; font-weight: bold; white-space: nowrap;}
 
-/* [요청 2] GPS 버튼 스타일 */
+/* GPS 버튼 스타일 */
 #btn_gps {
     position: absolute;
     top: 100px; /* 검색창 아래 */
@@ -60,7 +60,7 @@ body, html {
     color: #333;
 }
 
-/* [요청 1] 검색 결과 창 (초기 display: none) */
+/* 검색 결과 창 */
 #menu_wrap {
     display: none; 
     position: absolute;
@@ -72,9 +72,7 @@ body, html {
     z-index: 100;
     border-radius: 10px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    display: flex; /* flex로 변경하여 내부 스크롤 처리 */
     flex-direction: column;
-    display: none; /* 다시 숨김 (JS로 block 처리) */
 }
 
 .list-header { 
@@ -92,7 +90,7 @@ body, html {
 
 #placesList { 
     padding: 0; margin: 0; 
-    overflow-y: auto; /* 리스트만 스크롤 */
+    overflow-y: auto;
     flex: 1; 
 }
 #placesList li { list-style: none; padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; background: #fff; }
@@ -101,7 +99,7 @@ body, html {
 #placesList .item .info span { display: block; margin-top: 3px; color: #888; font-size: 13px; }
 #placesList .item .info .tel { color: #009900; }
 
-/* [요청 4] 모바일 하단 바 */
+/* 모바일 하단 바 */
 .mobile-bottom-bar {
     position: fixed;
     bottom: 0;
@@ -114,7 +112,7 @@ body, html {
     align-items: center;
     border-top: 1px solid #ddd;
     z-index: 9999; 
-    padding-bottom: env(safe-area-inset-bottom); /* 아이폰 홈바 대응 */
+    padding-bottom: env(safe-area-inset-bottom);
 }
 
 .nav-btn {
@@ -127,7 +125,7 @@ body, html {
     align-items: center;
     cursor: pointer;
     width: 33%;
-    -webkit-tap-highlight-color: transparent; /* 모바일 터치 하이라이트 제거 */
+    -webkit-tap-highlight-color: transparent;
 }
 .nav-btn span { font-size: 20px; margin-bottom: 4px; }
 
@@ -139,7 +137,7 @@ body, html {
 /* 모바일 반응형 처리 */
 @media screen and (max-width: 600px) {
     #menu_wrap {
-        width: 95%; /* 모바일에서는 넓게 */
+        width: 95%;
         left: 2.5%;
         top: 100px;
         bottom: 70px;
