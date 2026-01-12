@@ -1,124 +1,183 @@
-/* 1. 기본 설정 */
-body, html { 
-    margin: 0; padding: 0; width: 100%; height: 100%; 
-    overflow: hidden; font-family: 'Pretendard', sans-serif; 
+/* =========================================
+   1. 테마 변수 설정 (Dark/Light System)
+   ========================================= */
+:root {
+    /* 기본(라이트모드) 색상 */
+    --bg-color: #ffffff;
+    --text-color: #111111;
+    --text-sub: #666666;
+    --sidebar-bg: rgba(255, 255, 255, 0.95);
+    --border-color: #eeeeee;
+    --accent-color: #222222;
+    --accent-text: #ffffff;
+    --input-bg: #f8f9fa;
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    --bubble-bg: #ffffff;
+    --tag-red-bg: #fff0f0; --tag-red-text: #e03131;
+    --tag-blue-bg: #e7f5ff; --tag-blue-text: #1971c2;
 }
 
-/* 2. 지도 */
-#map { width: 100%; height: 100vh; }
+/* 다크모드 오버라이드 */
+[data-theme="dark"] {
+    --bg-color: #121212;
+    --text-color: #eeeeee;
+    --text-sub: #aaaaaa;
+    --sidebar-bg: rgba(30, 30, 30, 0.95);
+    --border-color: #333333;
+    --accent-color: #ffffff;
+    --accent-text: #121212;
+    --input-bg: #2a2a2a;
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    --bubble-bg: #222222;
+    --tag-red-bg: #4c2b2b; --tag-red-text: #ff8787;
+    --tag-blue-bg: #1c3b55; --tag-blue-text: #74c0fc;
+}
 
-/* 3. 상단 박스 */
-.top-bar {
-    position: absolute; top: 20px; left: 20px; z-index: 100;
-    background: rgba(255, 255, 255, 0.95);
-    padding: 24px; border-radius: 20px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    width: 340px; max-width: 90%;
-    backdrop-filter: blur(5px);
+/* =========================================
+   2. 글로벌 스타일
+   ========================================= */
+* { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Pretendard', sans-serif; overflow: hidden; background-color: var(--bg-color); color: var(--text-color); transition: background 0.3s, color 0.3s; }
+
+/* =========================================
+   3. 레이아웃 (PC & Mobile 공통)
+   ========================================= */
+/* 사이드바 (정보창) */
+.sidebar {
+    position: absolute; z-index: 100;
+    display: flex; flex-direction: column;
+    background: var(--sidebar-bg);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
 }
-.top-bar h1 { 
-    margin: 0 0 5px 0; font-size: 22px; 
-    font-weight: 800; color: #111; letter-spacing: -0.5px; 
+
+/* 지도 영역 */
+.map-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+#map { width: 100%; height: 100%; }
+
+/* 헤더 요소들 */
+.sidebar-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+.sidebar-header h1 { margin: 0 0 4px 0; font-size: 20px; font-weight: 800; color: var(--text-color); }
+.desc { font-size: 11px; color: var(--text-sub); margin: 0; font-weight: 500; }
+
+/* 아이콘 버튼 (다크모드, 공유) */
+.action-buttons { display: flex; gap: 8px; }
+.icon-btn {
+    background: none; border: none; cursor: pointer;
+    color: var(--text-color); padding: 4px; border-radius: 50%;
+    transition: background 0.2s;
 }
-.top-bar .desc {
-    font-size: 12px; color: #999; margin: 0 0 20px 0;
-    font-weight: 500; letter-spacing: 0.5px;
-}
+.icon-btn:hover { background-color: var(--border-color); }
 
 /* 검색창 */
-.search-area { display: flex; gap: 8px; margin-bottom: 20px; }
-.search-input {
-    flex: 1; padding: 12px; border: 1px solid #e0e0e0;
-    border-radius: 10px; font-size: 14px; outline: none; transition: 0.2s;
+.search-container { margin-bottom: 16px; }
+.search-box {
+    display: flex; align-items: center; background: var(--input-bg);
+    border-radius: 12px; padding: 0 12px; border: 1px solid var(--border-color);
 }
-.search-input:focus { border-color: #333; }
-#search-btn {
-    padding: 0 16px; background-color: #222; color: #fff;
-    border: none; border-radius: 10px; cursor: pointer; font-weight: 600;
+.search-box input {
+    flex: 1; border: none; background: none; padding: 12px 0;
+    font-size: 14px; color: var(--text-color);
+}
+.search-box button { background: none; border: none; color: var(--text-color); cursor: pointer; padding: 8px; }
+
+/* 필터 탭 */
+.filter-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.filter-tabs button {
+    padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border-color);
+    background: var(--input-bg); color: var(--text-sub);
+    font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s;
+}
+.filter-tabs button:hover { background: var(--border-color); }
+.filter-tabs button.active {
+    background: var(--accent-color); color: var(--accent-text); border-color: var(--accent-color);
 }
 
-/* 탭 버튼 */
-.tabs { display: flex; flex-wrap: wrap; gap: 8px; }
-.tabs button {
-    padding: 8px 14px; border: 1px solid #eee; background-color: #f8f9fa;
-    border-radius: 30px; font-size: 13px; color: #666; cursor: pointer;
-    font-weight: 500; transition: all 0.2s ease;
+/* 제보하기 링크 */
+.report-link {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px; background: var(--input-bg); border-radius: 10px;
+    text-decoration: none; color: var(--text-color); font-size: 13px; font-weight: 600;
+    border: 1px solid var(--border-color); margin-top: auto; /* 하단 배치 */
+    transition: 0.2s;
 }
-.tabs button:hover { background-color: #eee; }
-.tabs button.active {
-    background-color: #222; color: #fff; border-color: #222; 
-    font-weight: 700; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+.report-link:hover { border-color: #d6336c; color: #d6336c; }
+
+/* GPS 버튼 */
+#gps-btn {
+    position: absolute; bottom: 30px; right: 20px; z-index: 99;
+    width: 48px; height: 48px; border-radius: 50%;
+    background-color: var(--bg-color); border: 1px solid var(--border-color);
+    box-shadow: var(--shadow); color: var(--text-color);
+    display: flex; justify-content: center; align-items: center;
+    cursor: pointer; transition: 0.2s;
+}
+#gps-btn:hover { transform: translateY(-2px); }
+
+/* =========================================
+   4. 반응형 레이아웃 분기점 (Rich Life Style)
+   ========================================= */
+
+/* 📱 모바일 (화면 너비 768px 미만) */
+@media (max-width: 767px) {
+    .sidebar {
+        bottom: 0; left: 0; width: 100%; height: auto;
+        max-height: 80vh; /* 화면의 80%까지만 */
+        border-radius: 24px 24px 0 0;
+        padding: 24px 20px 30px 20px; /* 하단 여백 확보 */
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+    }
+    .report-link { display: none; } /* 모바일 공간 부족 시 숨김 or 상단 배치 */
+    #gps-btn { bottom: 320px; right: 20px; } /* 사이드바 위로 올림 */
+    
+    /* 모바일에서 사이드바 내용이 많으면 스크롤 */
+    .sidebar { overflow-y: auto; }
 }
 
-/* 4. 오버레이(말풍선) */
+/* 🖥️ PC (화면 너비 768px 이상) */
+@media (min-width: 768px) {
+    .sidebar {
+        top: 20px; left: 20px; bottom: 20px;
+        width: 380px; height: auto;
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: var(--shadow);
+    }
+    
+    /* PC에서는 지도 전체 사용 */
+    .map-container { width: 100%; padding-left: 0; }
+    
+    #gps-btn { bottom: 40px; right: 40px; }
+}
+
+/* =========================================
+   5. 커스텀 오버레이 (말풍선)
+   ========================================= */
 .overlay-bubble {
-    background-color: #fff; border-radius: 16px; padding: 16px 20px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); text-align: left;
-    position: relative; bottom: 55px; min-width: 180px;
-    border: 1px solid rgba(0,0,0,0.05);
+    background-color: var(--bubble-bg);
+    border-radius: 16px; padding: 16px 20px;
+    box-shadow: var(--shadow); text-align: left;
+    position: relative; bottom: 50px; min-width: 200px;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
 }
 .overlay-bubble::after {
-    content: ''; position: absolute; bottom: -10px; left: 50%;
-    transform: translateX(-50%); border-top: 10px solid #fff;
+    content: ''; position: absolute; bottom: -8px; left: 50%;
+    transform: translateX(-50%);
+    border-top: 8px solid var(--bubble-bg);
     border-left: 8px solid transparent; border-right: 8px solid transparent;
-    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.05));
 }
-.overlay-bubble h3 { margin: 0 0 6px 0; font-size: 17px; font-weight: 700; color: #222; padding-right: 20px; }
-.overlay-bubble p { margin: 0 0 4px 0; font-size: 13px; color: #555; display: flex; align-items: center; gap: 4px; }
-.overlay-bubble .badge {
-    display: inline-block; font-size: 11px; padding: 2px 6px; 
-    border-radius: 4px; background: #f0f0f0; color: #666; font-weight: 600; margin-right: 4px;
-}
+.overlay-bubble h3 { margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: var(--text-color); }
+.overlay-bubble p { margin: 0 0 6px 0; font-size: 13px; color: var(--text-sub); display: flex; align-items: center; gap: 4px; }
 .overlay-bubble .close-btn {
-    position: absolute; top: 12px; right: 12px; width: 24px; height: 24px; 
-    border-radius: 50%; background: #f5f5f5; color: #999;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; font-size: 14px; transition: 0.2s;
-}
-.overlay-bubble .close-btn:hover { background: #eee; color: #333; }
-
-/* 태그 디자인 */
-.tag-red {
-    display: inline-block; font-size: 11px; padding: 3px 6px;
-    border-radius: 4px; background-color: #fff0f0; color: #e03131;
-    border: 1px solid #ffc9c9; font-weight: 600;
-}
-.tag-blue {
-    display: inline-block; font-size: 11px; padding: 3px 6px;
-    border-radius: 4px; background-color: #e7f5ff; color: #1971c2;
-    border: 1px solid #a5d8ff; font-weight: 600;
-}
-
-/* 5. GPS 버튼 */
-#gps-btn {
-    position: fixed; bottom: 30px; right: 20px; z-index: 999;
-    width: 48px; height: 48px; border-radius: 50%; background-color: #fff; border: none;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); cursor: pointer;
+    position: absolute; top: 12px; right: 12px;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--input-bg); color: var(--text-sub);
     display: flex; justify-content: center; align-items: center;
-    transition: all 0.2s ease; color: #555;
-    padding-bottom: env(safe-area-inset-bottom);
+    cursor: pointer; font-size: 14px;
 }
-#gps-btn:hover { background-color: #f8f9fa; color: #222; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25); }
-#gps-btn:active { transform: translateY(0); }
-#gps-btn svg { width: 24px; height: 24px; }
 
-/* 6. 모바일 최적화 */
-@media (max-width: 480px) {
-    .top-bar {
-        left: 0; top: 0; width: 100%; max-width: 100%; margin: 0;
-        border-radius: 0 0 20px 20px; padding: 15px; box-sizing: border-box;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-    .top-bar h1 { font-size: 18px; margin-bottom: 2px; }
-    .top-bar .desc { font-size: 11px; margin-bottom: 15px; }
-    .search-area { gap: 6px; margin-bottom: 15px; }
-    .search-input { padding: 10px; font-size: 13px; }
-    #search-btn { padding: 0 12px; font-size: 13px; white-space: nowrap; }
-    .tabs {
-        display: flex; flex-wrap: nowrap; overflow-x: auto;
-        padding-bottom: 5px; -webkit-overflow-scrolling: touch; gap: 6px;
-    }
-    .tabs::-webkit-scrollbar { display: none; }
-    .tabs button { flex: 0 0 auto; font-size: 12px; padding: 7px 12px; }
-    #gps-btn { bottom: 25px; right: 15px; width: 44px; height: 44px; }
-}
+/* 태그 */
+.tag-red { display: inline-block; font-size: 11px; padding: 3px 8px; border-radius: 6px; background: var(--tag-red-bg); color: var(--tag-red-text); font-weight: 600; }
+.tag-blue { display: inline-block; font-size: 11px; padding: 3px 8px; border-radius: 6px; background: var(--tag-blue-bg); color: var(--tag-blue-text); font-weight: 600; }
