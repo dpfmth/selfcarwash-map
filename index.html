@@ -2,62 +2,343 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>세차장 찾기 - 디테일링포럼</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>세차장 지도 - 리치 라이프 스타일</title>
     
-    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-    <link rel="stylesheet" href="style.css">
-    
-    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=071678e0af064945d4c2ac55dca44e9c&libraries=services"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        /* --- 1. 기본 초기화 및 변수 --- */
+        :root {
+            --primary-color: #333;
+            --accent-color: #007AFF;
+            --bg-color: #F2F4F6; /* 배경색 */
+            --card-bg: #FFFFFF;
+            --radius: 24px; /* 둥근 모서리 크기 */
+            --shadow: 0 4px 20px rgba(0,0,0,0.08);
+            --gap: 20px; /* PC에서 지도와 메뉴 사이 간격 */
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--primary-color);
+            height: 100vh; /* 전체 높이 */
+            overflow: hidden; /* 스크롤 방지 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* --- 2. 전체 레이아웃 컨테이너 --- */
+        .app-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            padding: var(--gap); /* PC 화면 테두리 여백 */
+            gap: var(--gap); /* 메뉴와 지도 사이 간격 */
+        }
+
+        /* --- 3. 사이드바 (내비게이터) --- */
+        .sidebar {
+            width: 380px; /* PC 사이드바 너비 */
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+            overflow: hidden;
+            flex-shrink: 0; /* 지도에 밀리지 않음 */
+        }
+
+        /* 헤더 영역 */
+        .header {
+            padding: 24px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .logo-text { font-size: 20px; font-weight: 800; }
+        
+        .beta-badge {
+            background: var(--accent-color);
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            vertical-align: middle;
+        }
+
+        /* 검색창 */
+        .search-box {
+            position: relative;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 12px 16px 12px 40px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-size: 14px;
+            outline: none;
+            transition: 0.2s;
+        }
+        .search-box input:focus { border-color: var(--accent-color); }
+        .search-icon {
+            position: absolute;
+            left: 12px; top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        /* 리스트 영역 */
+        .list-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 16px;
+        }
+        
+        .list-item {
+            padding: 16px 0;
+            border-bottom: 1px solid #f5f5f5;
+            cursor: pointer;
+        }
+        .list-item:hover { background-color: #fafafa; }
+        .place-name { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+        .place-addr { font-size: 13px; color: #666; }
+
+        /* 필터 버튼 영역 */
+        .filter-area {
+            padding: 16px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+        }
+        .filter-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .filter-btn.active { background: var(--primary-color); color: white; }
+
+        /* --- 4. 지도 영역 --- */
+        .map-container {
+            flex: 1; /* 남은 공간 모두 차지 */
+            background: #e0e0e0; /* 지도 로딩 전 배경 */
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            position: relative; /* GPS 버튼 위치 기준 */
+            overflow: hidden;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* GPS 버튼 */
+        .gps-btn {
+            position: absolute;
+            bottom: 24px;
+            right: 24px;
+            width: 48px;
+            height: 48px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 20;
+            border: none;
+            font-size: 24px;
+            color: #333;
+            transition: 0.2s;
+        }
+        .gps-btn:active { transform: scale(0.95); background: #f9f9f9; }
+
+        /* --- 5. 반응형 (모바일) --- */
+        @media screen and (max-width: 768px) {
+            body { background-color: white; } /* 모바일은 배경 흰색 */
+
+            .app-container {
+                padding: 0; /* 여백 제거 */
+                gap: 0;
+                flex-direction: column; /* 세로 배치 */
+            }
+
+            /* 지도: 화면 전체를 꽉 채우게 */
+            .map-container {
+                position: absolute;
+                top: 0; left: 0;
+                width: 100%;
+                height: 100%;
+                border-radius: 0; /* 둥근 모서리 제거 */
+                z-index: 1;
+            }
+
+            /* 사이드바 -> 하단 시트 (Bottom Sheet) 형태로 변경 */
+            .sidebar {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: auto; /* 내용물만큼 */
+                max-height: 40vh; /* 화면의 40%까지만 */
+                border-radius: 24px 24px 0 0; /* 위쪽만 둥글게 */
+                z-index: 100;
+                box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+                
+                /* 아이폰 Home Bar 영역 대응 */
+                padding-bottom: env(safe-area-inset-bottom); 
+            }
+
+            /* 모바일 헤더 축소 */
+            .header { padding: 16px 20px; }
+            .brand { display: none; } /* 모바일에서 로고 숨김 (선택사항) */
+            
+            /* 리스트는 모바일에서 숨기거나 작게 처리 (여기선 일단 숨김 처리 예시, 필요하면 block으로) */
+            .list-container { display: none; } 
+
+            /* GPS 버튼 위치 조정 (시트 위로 올림) */
+            .gps-btn {
+                bottom: calc(40vh + 20px + env(safe-area-inset-bottom)); /* 시트 높이만큼 올림 */
+                right: 16px;
+            }
+        }
+    </style>
 </head>
 <body>
 
-    <div class="layout-container">
-        
+    <div class="app-container">
         <aside class="sidebar">
-            <div class="sidebar-content">
-                <header class="header-section">
-                    <h1>세차장 찾기</h1>
-                    <p class="subtitle">디테일링포럼.에르소</p>
-                </header>
-
-                <div class="search-section">
-                    <div class="search-input-box">
-                        <input type="text" id="keyword" placeholder="지역 또는 이름 검색" onkeypress="if(event.keyCode==13) {searchPlaces(); return false;}">
-                        <button id="btn_search" onclick="searchPlaces()">검색</button>
-                    </div>
+            <div class="header">
+                <div class="brand">
+                    <span class="logo-text">WASH MAP</span>
+                    <span class="beta-badge">BETA</span>
                 </div>
-
-                <div class="filter-section">
-                    <button class="filter-btn active">전체보기</button>
-                    <button class="filter-btn">셀프세차</button>
-                    <button class="filter-btn">노터치/자동</button>
+                <div class="search-box">
+                    <i class="ph ph-magnifying-glass search-icon"></i>
+                    <input type="text" placeholder="세차장 검색...">
                 </div>
-
-                <ul id="placesList"></ul>
-                <div id="pagination"></div>
             </div>
-            
-            <div class="mobile-handle" onclick="toggleListMobile()">
-                <span>목록 닫기 / 열기</span>
+
+            <div class="filter-area">
+                <button class="filter-btn active">전체</button>
+                <button class="filter-btn">셀프</button>
+                <button class="filter-btn">자동</button>
+                <button class="filter-btn">노터치</button>
+            </div>
+
+            <div class="list-container">
+                <div class="list-item" onclick="alert('목록 클릭됨!')">
+                    <div class="place-name">워시존 강남점</div>
+                    <div class="place-addr">서울 강남구 역삼동 123-4</div>
+                </div>
+                <div class="list-item">
+                    <div class="place-name">킹콩샤워 송파점</div>
+                    <div class="place-addr">서울 송파구 문정동 55-1</div>
+                </div>
+                 <div class="list-item">
+                    <div class="place-name">더워시 부산점</div>
+                    <div class="place-addr">부산 해운대구 우동 99</div>
+                </div>
             </div>
         </aside>
 
         <main class="map-container">
             <div id="map"></div>
             
-            <div class="map-controls">
-                <button id="btn_gps" onclick="getCurrentPos()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
-                </button>
-                
-                <button id="btn_report">
-                    🚨 정보 수정 제보
-                </button>
-            </div>
+            <button class="gps-btn" id="gpsButton" title="내 위치 찾기">
+                <i class="ph ph-crosshair"></i>
+            </button>
         </main>
     </div>
 
-    <script src="script.js"></script>
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=071678e0af064945d4c2ac55dca44e9c&libraries=services"></script>
+
+    <script>
+        // --- 지도 초기화 및 기능 스크립트 ---
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // 1. 지도 생성
+            const container = document.getElementById('map');
+            const options = {
+                center: new kakao.maps.LatLng(37.566826, 126.9786567), // 서울 시청 중심
+                level: 3
+            };
+            
+            // API 키가 없어도 레이아웃 확인 가능하도록 try-catch 처리 (실제 키 입력시 정상 작동)
+            let map;
+            try {
+                map = new kakao.maps.Map(container, options);
+                
+                // 줌 컨트롤 추가
+                const zoomControl = new kakao.maps.ZoomControl();
+                map.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
+            } catch (e) {
+                console.error("카카오맵 로드 실패 (API Key를 확인하세요):", e);
+                container.innerHTML = '<div style="display:flex; justify-content:center; align-items:center; height:100%; color:#666;">지도를 불러올 수 없습니다.<br>API Key를 확인해주세요.</div>';
+            }
+
+            // 2. GPS 기능 구현
+            const gpsBtn = document.getElementById('gpsButton');
+            
+            gpsBtn.addEventListener('click', function() {
+                if (navigator.geolocation) {
+                    // 로딩 표시 (아이콘 회전 등) - 여기선 간단히 alert 대신 로그
+                    console.log("위치 찾는 중...");
+                    
+                    navigator.geolocation.getCurrentPosition(function(position) {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        
+                        if(map) {
+                            const locPosition = new kakao.maps.LatLng(lat, lon);
+                            map.setCenter(locPosition);
+                            
+                            // 마커 표시 (선택사항)
+                            const marker = new kakao.maps.Marker({  
+                                map: map, 
+                                position: locPosition 
+                            });
+                        } else {
+                            alert("지도가 로드되지 않았습니다.");
+                        }
+
+                    }, function(error) {
+                        console.error(error);
+                        alert("위치 정보를 가져올 수 없습니다. GPS 권한을 확인해주세요.");
+                    });
+                } else {
+                    alert("이 브라우저에서는 Geolocation이 지원되지 않습니다.");
+                }
+            });
+
+            // 3. 필터 버튼 클릭 효과 (JS 작동 확인용)
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    console.log(btn.innerText + " 필터 선택됨");
+                });
+            });
+        });
+    </script>
 </body>
 </html>
