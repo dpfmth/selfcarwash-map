@@ -24,10 +24,10 @@ body {
     padding: 2px 5px; border-radius: 4px; vertical-align: middle; margin-left: 4px; font-weight: 700;
 }
 
-/* 레이아웃 (PC 기본: 좌우 분할) */
+/* 레이아웃 */
 .layout-container { display: flex; width: 100%; height: 100%; }
 
-/* === 사이드바 === */
+/* 사이드바 */
 .sidebar {
     width: 400px;
     background: var(--sidebar-bg);
@@ -38,7 +38,7 @@ body {
     transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-.mobile-handle-area { display: none; } /* PC에선 숨김 */
+.mobile-handle-area { display: none; }
 
 .sidebar-header {
     padding: 24px 24px 10px 24px;
@@ -137,42 +137,6 @@ body {
     border-width: 10px 8px 0; border-style: solid;
     border-color: #fff transparent transparent transparent;
 }
-/* ... 기존 overlay-card 스타일 아래에 추가 ... */
-
-/* 1. 긴급 공지 박스 (빨간색 알림) */
-.notice-box {
-    background-color: #FFF5F5;
-    border: 1px solid #FFCCCC;
-    color: #E03131;
-    font-size: 12px;
-    font-weight: 700;
-    padding: 8px 12px;
-    border-radius: 8px;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    line-height: 1.4;
-}
-.notice-box svg { width: 14px; height: 14px; flex-shrink: 0; }
-
-/* 2. 홍보 문구 (타이틀 바로 아래 강조) */
-.promo-text {
-    font-size: 12px;
-    color: #7950F2; /* 보라색 강조 */
-    font-weight: 600;
-    margin-bottom: 4px;
-    display: block;
-}
-
-/* 3. 베이 정보 (기존 info-row 스타일 활용하되 조금 다르게) */
-.info-row.bay-info {
-    color: #333;
-    font-weight: 500;
-}
-.info-row.bay-info svg {
-    color: #339AF0; /* 아이콘 파란색 */
-}
 
 /* 카드 상단 이미지 */
 .card-hero {
@@ -200,12 +164,31 @@ body {
     background: #f0f0f0; padding: 3px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle;
 }
 
+/* 홍보 문구 */
+.promo-text {
+    font-size: 12px; color: #7950F2; font-weight: 600;
+    margin-bottom: 4px; display: block;
+}
+
 .card-meta { font-size: 13px; color: #555; margin-bottom: 12px; display: flex; gap: 8px; align-items: center; }
 .star-rating { color: #FFB800; font-weight: 700; display: flex; align-items: center; gap: 2px; }
 
+/* 긴급 공지 박스 */
+.notice-box {
+    background-color: #FFF5F5; border: 1px solid #FFCCCC; color: #E03131;
+    font-size: 12px; font-weight: 700; padding: 8px 12px; border-radius: 8px;
+    margin-bottom: 12px; display: flex; align-items: center; gap: 6px; line-height: 1.4;
+}
+.notice-box svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+/* 상세 정보 행 */
 .info-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 13px; color: #444; }
 .info-row svg { width: 15px; height: 15px; color: #999; flex-shrink: 0; }
 
+.info-row.bay-info { color: #333; font-weight: 500; }
+.info-row.bay-info svg { color: #339AF0; }
+
+/* 태그 */
 .tag-row { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
 .feature-tag {
     font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px; border: 1px solid #eee;
@@ -220,6 +203,7 @@ body {
     flex: 1; border: none; border-radius: 8px; padding: 10px 0;
     font-size: 13px; font-weight: 700; cursor: pointer;
     display: flex; align-items: center; justify-content: center; gap: 6px;
+    text-decoration: none; /* a 태그 리셋 */
 }
 .action-btn.call { background: #F5F7F9; color: #333; }
 .action-btn.route { background: #333; color: #fff; }
@@ -229,22 +213,18 @@ body {
 /* === 모바일 반응형 === */
 @media screen and (max-width: 768px) {
     .layout-container { display: block; position: relative; }
-    
     .map-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
-    
     #gps-btn { bottom: 200px; right: 20px; transition: bottom 0.3s; }
 
-    /* 바텀 시트 스타일 */
     .sidebar {
         position: fixed; bottom: 0; left: 0; width: 100%;
         height: 80vh; max-height: 80vh;
         border-right: none; border-radius: 24px 24px 0 0;
         box-shadow: 0 -4px 25px rgba(0,0,0,0.15);
-        transform: translateY(calc(100% - 170px)); /* 기본: 검색창만 보임 */
+        transform: translateY(calc(100% - 170px));
     }
-
     .sidebar.expanded { transform: translateY(0); }
-    .sidebar.collapsed { transform: translateY(calc(100% - 40px)); /* 지도 볼 때 */ }
+    .sidebar.collapsed { transform: translateY(calc(100% - 40px)); }
 
     .mobile-handle-area {
         display: flex; justify-content: center; padding: 12px 0;
@@ -252,8 +232,6 @@ body {
     }
     .handle-bar { width: 40px; height: 5px; background: #E0E0E0; border-radius: 10px; }
     
-    /* 모바일에서 카드 너비 조정 */
     .overlay-card { width: 280px; bottom: 55px; }
     .card-hero { height: 100px; }
 }
-
