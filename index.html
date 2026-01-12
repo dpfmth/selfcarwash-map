@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>세차여지도 - 내 주변 세차장 찾기</title>
+    <title>세차장 찾기 - 디테일링포럼</title>
     
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <link rel="stylesheet" href="style.css">
@@ -14,55 +14,48 @@
 
     <div class="layout-container">
         
-        <aside class="sidebar" id="sidebar">
-            <header class="sidebar-header">
-                <div class="header-left">
-                    <h1>세차여지도</h1>
-                </div>
-                
-                <div class="header-right">
-                    <a href="https://cafe.naver.com/detailingforum" target="_blank" class="tool-link" title="디테일링 포럼 가기">
-                        <span class="link-text">포럼</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                    </a>
+        <aside class="sidebar">
+            <div class="sidebar-content">
+                <header class="header-section">
+                    <h1>세차장 찾기</h1>
+                    <p class="subtitle">디테일링포럼.에르소</p>
+                </header>
 
-                    <button id="btn-share" onclick="shareUrl()" class="icon-btn" title="공유하기">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-                    </button>
-
-                    <button id="theme-toggle" title="테마 변경" class="icon-btn">
-                        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                    </button>
-                    
-                    <button onclick="toggleList()" class="close-btn mobile-only">✖</button>
+                <div class="search-section">
+                    <div class="search-input-box">
+                        <input type="text" id="keyword" placeholder="지역 또는 이름 검색" onkeypress="if(event.keyCode==13) {searchPlaces(); return false;}">
+                        <button id="btn_search" onclick="searchPlaces()">검색</button>
+                    </div>
                 </div>
-            </header>
 
-            <div class="search-box-wrapper">
-                <div class="search_box">
-                    <input type="text" id="keyword" placeholder="장소 입력 (예: 강남 세차장)" onkeypress="if(event.keyCode==13) {searchPlaces(); return false;}">
-                    <button id="btn_search" onclick="searchPlaces()">검색</button>
+                <div class="filter-section">
+                    <button class="filter-btn active">전체보기</button>
+                    <button class="filter-btn">셀프세차</button>
+                    <button class="filter-btn">노터치/자동</button>
                 </div>
+
+                <ul id="placesList"></ul>
+                <div id="pagination"></div>
             </div>
-
-            <ul id="placesList"></ul>
-            <div id="pagination"></div>
+            
+            <div class="mobile-handle" onclick="toggleListMobile()">
+                <span>목록 닫기 / 열기</span>
+            </div>
         </aside>
 
-        <main class="map-content">
+        <main class="map-container">
             <div id="map"></div>
             
-            <button id="btn_gps" onclick="getCurrentPos()">
-                <span>📍</span> 내 위치
-            </button>
-
-            <div class="mobile-bottom-bar mobile-only">
-                <button class="nav-btn" onclick="location.reload()"><span>🏠</span>홈</button>
-                <button class="nav-btn" onclick="shareUrl()"><span>🔗</span>공유</button>
-                <button class="nav-btn" onclick="toggleList()"><span>☰</span>목록</button>
+            <div class="map-controls">
+                <button id="btn_gps" onclick="getCurrentPos()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
+                </button>
+                
+                <button id="btn_report">
+                    🚨 정보 수정 제보
+                </button>
             </div>
         </main>
-
     </div>
 
     <script src="script.js"></script>
