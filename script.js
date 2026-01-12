@@ -12,23 +12,17 @@ var ps = new kakao.maps.services.Places();
 var infowindow = new kakao.maps.InfoWindow({zIndex:1});
 var markers = []; 
 
-// [요청 2] GPS: 내 위치 찾기 함수
+// GPS: 내 위치 찾기 함수
 function getCurrentPos() {
     if (navigator.geolocation) {
-        // 로딩 중 표시가 필요하면 여기에 추가
         navigator.geolocation.getCurrentPosition(function(position) {
-            var lat = position.coords.latitude, // 위도
-                lon = position.coords.longitude; // 경도
+            var lat = position.coords.latitude,
+                lon = position.coords.longitude;
             
             var locPosition = new kakao.maps.LatLng(lat, lon); 
             
-            // 지도 중심 이동
             map.setCenter(locPosition);
-            map.setLevel(3); // 적절한 레벨로 조정
-            
-            // 내 위치 마커 표시 (선택사항)
-            // var marker = new kakao.maps.Marker({ position: locPosition, map: map });
-
+            map.setLevel(3);
         }, function(err) {
             alert('위치 정보를 가져올 수 없습니다. GPS 설정을 확인해주세요.');
         });
@@ -52,13 +46,9 @@ function searchPlaces() {
 // 4. 검색 콜백
 function placesSearchCB(data, status, pagination) {
     if (status === kakao.maps.services.Status.OK) {
-
-        // [요청 1] 검색 성공 시에만 목록 보이기
         document.getElementById('menu_wrap').style.display = 'flex';
-
         displayPlaces(data);
         displayPagination(pagination);
-
     } else if (status === kakao.maps.services.Status.ZERO_RESULT) {
         alert('검색 결과가 존재하지 않습니다.');
         return;
@@ -85,9 +75,7 @@ function displayPlaces(places) {
 
         bounds.extend(placePosition);
 
-        // [요청 2 관련] 클릭 이벤트 (클로저)
         (function(marker, title, address, url) {
-            
             kakao.maps.event.addListener(marker, 'click', function() {
                 displayInfowindow(marker, title, address, url);
             });
@@ -118,9 +106,9 @@ function getListItem(index, places) {
     } else {
         itemStr += '    <span>' +  places.address_name  + '</span>'; 
     }
-                 
+            
     itemStr += '  <span class="tel">' + places.phone  + '</span>' +
-                '</div>';           
+                '</div>';            
 
     el.innerHTML = itemStr;
     el.className = 'item';
@@ -183,7 +171,7 @@ function displayPagination(pagination) {
     paginationEl.appendChild(fragment);
 }
 
-// 인포윈도우 (말풍선)
+// 인포윈도우
 function displayInfowindow(marker, title, address, url) {
     var content = `
         <div style="padding:10px; z-index:1; min-width:200px; font-family:sans-serif;">
@@ -202,7 +190,7 @@ function removeAllChildNods(el) {
     }
 }
 
-// [요청 3] 링크 공유
+// 링크 공유
 function shareUrl() {
     var url = window.location.href;
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -227,10 +215,9 @@ function fallbackCopy(text) {
     document.body.removeChild(textArea);
 }
 
-// [요청 4] 목록 토글
+// 목록 토글
 function toggleList() {
     var menu = document.getElementById('menu_wrap');
-    // flex로 제어
     if (menu.style.display === 'none' || menu.style.display === '') {
         menu.style.display = 'flex';
     } else {
