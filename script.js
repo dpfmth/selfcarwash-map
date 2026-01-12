@@ -1,138 +1,239 @@
-let map;
-let markers = [];
-let allData = [];
+// 1. 지도 생성
+var mapContainer = document.getElementById('map');
+var mapOption = {
+    center: new kakao.maps.LatLng(37.566826, 126.9786567), 
+    level: 3 
+};
 
-// [핵심] 카카오맵이 로드된 후 실행 (v2/maps/sdk.js?autoload=false 대응)
-kakao.maps.load(function() {
-    initMap();      // 지도 먼저 그리고
-    loadData();     // 데이터 불러오기
-});
+var map = new kakao.maps.Map(mapContainer, mapOption); 
 
-function initMap() {
-    const container = document.getElementById('map');
-    const options = {
-        center: new kakao.maps.LatLng(37.6583599, 126.8320201), // 고양시 부근
-        level: 7
-    };
-    map = new kakao.maps.Map(container, options);
-}
+// 2. 장소 검색 객체 및 인포윈도우
+var ps = new kakao.maps.services.Places();  
+var infowindow = new kakao.maps.InfoWindow({zIndex:1});
+var markers = []; 
 
-function loadData() {
-    // data.json 파일 분리
-    fetch('./data.json')
-        .then(res => {
-            if (!res.ok) throw new Error("파일을 찾을 수 없습니다.");
-            return res.json();
-        })
-        .then(data => {
-            allData = data;
-            renderList(allData.slice(0, 50));
-            renderMarkers(allData);
-        })
-        .catch(err => {
-            console.error(err);
-            document.getElementById('place-list').innerHTML = 
-                '<div style="text-align:center; padding:40px; color:#888;">데이터(data.json)를 불러올 수 없습니다.<br>Live Server 환경인지 확인해주세요.</div>';
+// [요청 2] GPS: 내 위치 찾기 함수
+function getCurrentPos() {
+    if (navigator.geolocation) {
+        // 로딩 중 표시가 필요하면 여기에 추가
+        navigator.geolocation.getCurrentPosition(function(position) {
+            var lat = position.coords.latitude, // 위도
+                lon = position.coords.longitude; // 경도
+            
+            var locPosition = new kakao.maps.LatLng(lat, lon); 
+            
+            // 지도 중심 이동
+            map.setCenter(locPosition);
+            map.setLevel(3); // 적절한 레벨로 조정
+            
+            // 내 위치 마커 표시 (선택사항)
+            // var marker = new kakao.maps.Marker({ position: locPosition, map: map });
+
+        }, function(err) {
+            alert('위치 정보를 가져올 수 없습니다. GPS 설정을 확인해주세요.');
         });
+    } else {
+        alert('이 브라우저에서는 위치 서비스를 지원하지 않습니다.');
+    }
 }
 
-function renderList(data) {
-    const container = document.getElementById('place-list');
-    container.innerHTML = '';
+// 3. 키워드 검색
+function searchPlaces() {
+    var keyword = document.getElementById('keyword').value;
 
-    if (data.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding:40px; color:#888;">검색 결과가 없습니다.</div>';
+    if (!keyword.replace(/^\s+|\s+$/g, '')) {
+        alert('키워드를 입력해주세요!');
+        return false;
+    }
+
+    ps.keywordSearch(keyword, placesSearchCB); 
+}
+
+// 4. 검색 콜백
+function placesSearchCB(data, status, pagination) {
+    if (status === kakao.maps.services.Status.OK) {
+
+        // [요청 1] 검색 성공 시에만 목록 보이기
+        document.getElementById('menu_wrap').style.display = 'flex';
+
+        displayPlaces(data);
+        displayPagination(pagination);
+
+    } else if (status === kakao.maps.services.Status.ZERO_RESULT) {
+        alert('검색 결과가 존재하지 않습니다.');
+        return;
+    } else if (status === kakao.maps.services.Status.ERROR) {
+        alert('검색 중 오류가 발생했습니다.');
         return;
     }
-
-    data.forEach(item => {
-        const typeClass = item.type === 'notouch' ? 'notouch' : 'self';
-        const typeText = item.type === 'notouch' ? '노터치/자동' : '셀프세차';
-        const imgUrl = item.img || 'https://via.placeholder.com/80';
-
-        const html = `
-            <div class="card" onclick="panTo(${item.lat}, ${item.lng})">
-                <img src="${imgUrl}" class="card-img" onerror="this.src='https://via.placeholder.com/80?text=No+Img'">
-                <div class="card-info">
-                    <div>
-                        <div class="card-top">
-                            <div class="card-title">${item.name}</div>
-                        </div>
-                        <div class="card-tags">
-                            <span class="tag ${typeClass}">${typeText}</span>
-                        </div>
-                        <div class="card-details">
-                            📞 ${item.phone}<br>
-                            ⏰ ${item.time}
-                        </div>
-                    </div>
-                    <div class="card-price">
-                        ₩${item.price.toLocaleString()}~
-                    </div>
-                </div>
-            </div>
-        `;
-        container.innerHTML += html;
-    });
 }
 
-function renderMarkers(data) {
-    markers.forEach(m => m.setMap(null));
-    markers = [];
+// 5. 목록 및 마커 표출
+function displayPlaces(places) {
+    var listEl = document.getElementById('placesList'), 
+    menuEl = document.getElementById('menu_wrap'),
+    fragment = document.createDocumentFragment(), 
+    bounds = new kakao.maps.LatLngBounds();
+    
+    removeAllChildNods(listEl);
+    removeMarker();
+    
+    for ( var i=0; i<places.length; i++ ) {
+        var placePosition = new kakao.maps.LatLng(places[i].y, places[i].x),
+            marker = addMarker(placePosition, i), 
+            itemEl = getListItem(i, places[i]); 
 
-    data.forEach(item => {
-        if(!item.lat || !item.lng) return;
+        bounds.extend(placePosition);
 
-        const position = new kakao.maps.LatLng(item.lat, item.lng);
-        const marker = new kakao.maps.Marker({
-            position: position,
-            title: item.name
-        });
+        // [요청 2 관련] 클릭 이벤트 (클로저)
+        (function(marker, title, address, url) {
+            
+            kakao.maps.event.addListener(marker, 'click', function() {
+                displayInfowindow(marker, title, address, url);
+            });
 
-        marker.setMap(map);
-        markers.push(marker);
+            itemEl.onclick = function () {
+                displayInfowindow(marker, title, address, url);
+                map.panTo(marker.getPosition()); 
+            };
 
-        kakao.maps.event.addListener(marker, 'click', function() {
-            map.panTo(position);
-        });
-    });
+        })(marker, places[i].place_name, places[i].road_address_name || places[i].address_name, places[i].place_url);
+
+        fragment.appendChild(itemEl);
+    }
+
+    listEl.appendChild(fragment);
+    menuEl.scrollTop = 0;
+    map.setBounds(bounds);
 }
 
-function panTo(lat, lng) {
-    const moveLatLon = new kakao.maps.LatLng(lat, lng);
-    map.panTo(moveLatLon);
-}
+// 6. 리스트 아이템 HTML
+function getListItem(index, places) {
+    var el = document.createElement('li'),
+    itemStr = '<div class="info">' +
+                '   <h5>' + (index+1) + '. ' + places.place_name + '</h5>';
 
-// 검색 기능
-const searchInput = document.getElementById('search-keyword');
-searchInput.addEventListener('keyup', function() {
-    const keyword = searchInput.value.toLowerCase();
-    const filtered = allData.filter(item => 
-        item.name.toLowerCase().includes(keyword)
-    );
-    renderList(filtered);
-    renderMarkers(filtered);
-});
-
-// 테마 변경
-document.getElementById('theme-toggle').addEventListener('click', () => {
-    document.body.classList.toggle('dark-mode');
-    const sun = document.querySelector('.icon-sun');
-    const moon = document.querySelector('.icon-moon');
-    if(document.body.classList.contains('dark-mode')){
-        sun.style.display = 'none'; moon.style.display = 'block';
+    if (places.road_address_name) {
+        itemStr += '    <span>' + places.road_address_name + '</span>';
     } else {
-        sun.style.display = 'block'; moon.style.display = 'none';
+        itemStr += '    <span>' +  places.address_name  + '</span>'; 
     }
-});
+                 
+    itemStr += '  <span class="tel">' + places.phone  + '</span>' +
+                '</div>';           
 
-// GPS
-document.getElementById('gps-btn').addEventListener('click', () => {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(position => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            map.panTo(new kakao.maps.LatLng(lat, lng));
+    el.innerHTML = itemStr;
+    el.className = 'item';
+
+    return el;
+}
+
+// 7. 마커 생성
+function addMarker(position, idx) {
+    var imageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_number_blue.png', 
+        imageSize = new kakao.maps.Size(36, 37),  
+        imgOptions =  {
+            spriteSize : new kakao.maps.Size(36, 691), 
+            spriteOrigin : new kakao.maps.Point(0, (idx*46)+10), 
+            offset: new kakao.maps.Point(13, 37) 
+        },
+        markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize, imgOptions),
+            marker = new kakao.maps.Marker({
+            position: position,
+            image: markerImage 
         });
+
+    marker.setMap(map); 
+    markers.push(marker);  
+    return marker;
+}
+
+function removeMarker() {
+    for ( var i = 0; i < markers.length; i++ ) {
+        markers[i].setMap(null);
+    }   
+    markers = [];
+}
+
+function displayPagination(pagination) {
+    var paginationEl = document.getElementById('pagination'),
+        fragment = document.createDocumentFragment(),
+        i; 
+
+    while (paginationEl.hasChildNodes()) {
+        paginationEl.removeChild (paginationEl.lastChild);
     }
-});
+
+    for (i=1; i<=pagination.last; i++) {
+        var el = document.createElement('a');
+        el.href = "#";
+        el.innerHTML = i;
+
+        if (i===pagination.current) {
+            el.className = 'on';
+        } else {
+            el.onclick = (function(i) {
+                return function() {
+                    pagination.gotoPage(i);
+                }
+            })(i);
+        }
+        fragment.appendChild(el);
+    }
+    paginationEl.appendChild(fragment);
+}
+
+// 인포윈도우 (말풍선)
+function displayInfowindow(marker, title, address, url) {
+    var content = `
+        <div style="padding:10px; z-index:1; min-width:200px; font-family:sans-serif;">
+            <div style="font-weight:bold; margin-bottom:5px; font-size:14px;">${title}</div>
+            <div style="font-size:12px; color:#555; margin-bottom:5px;">${address}</div>
+            <a href="${url}" target="_blank" style="color:#007bff; font-size:12px; text-decoration:none; border:1px solid #007bff; padding:2px 5px; border-radius:3px;">상세보기 ></a>
+        </div>`;
+
+    infowindow.setContent(content);
+    infowindow.open(map, marker);
+}
+
+function removeAllChildNods(el) {   
+    while (el.hasChildNodes()) {
+        el.removeChild (el.lastChild);
+    }
+}
+
+// [요청 3] 링크 공유
+function shareUrl() {
+    var url = window.location.href;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(() => alert("링크 복사 완료!")).catch(() => fallbackCopy(url));
+    } else {
+        fallbackCopy(url);
+    }
+}
+function fallbackCopy(text) {
+    var textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed"; 
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+        document.execCommand('copy');
+        alert("링크 복사 완료!");
+    } catch (err) {
+        alert("복사 실패");
+    }
+    document.body.removeChild(textArea);
+}
+
+// [요청 4] 목록 토글
+function toggleList() {
+    var menu = document.getElementById('menu_wrap');
+    // flex로 제어
+    if (menu.style.display === 'none' || menu.style.display === '') {
+        menu.style.display = 'flex';
+    } else {
+        menu.style.display = 'none';
+    }
+}
