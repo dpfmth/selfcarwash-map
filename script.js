@@ -1,20 +1,34 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // === 1. 지도 생성 (Container 높이 확보 후 생성) ===
+    // [핵심] 카카오 지도 SDK가 로드된 후 실행하도록 감쌉니다.
+    // HTML script 태그에 &autoload=false 가 필수입니다.
+    kakao.maps.load(() => {
+        initMap();
+    });
+});
+
+function initMap() {
+    // 1. 지도 생성
     const mapContainer = document.getElementById('map');
     const mapOption = {
-        center: new kakao.maps.LatLng(37.566826, 126.9786567),
+        center: new kakao.maps.LatLng(37.566826, 126.9786567), // 기본 위치 (서울시청)
         level: 7
     };
-    
-    let map = new kakao.maps.Map(mapContainer, mapOption);
-    
-    // 데이터 및 마커 관리를 위한 변수
-    let allData = [];
-    let markers = []; 
-    let activeOverlay = null; // 현재 떠있는 버블
-    let activeFilter = 'all'; // 현재 필터 상태
 
-    // === 2. GPS 자동 실행 ===
+    let map;
+    try {
+        map = new kakao.maps.Map(mapContainer, mapOption);
+    } catch (e) {
+        console.error("지도 로드 실패: API 키 또는 도메인 등록 확인 필요", e);
+        return;
+    }
+
+    // 상태 관리 변수
+    let allData = [];       // 전체 데이터 저장
+    let markers = [];       // 지도에 찍힌 마커들 관리
+    let activeOverlay = null; // 현재 떠 있는 말풍선
+    let activeFilter = 'all'; // 현재 탭 필터 (all, self, notouch)
+
+    // 2. GPS 자동 실행 (접속 시 내 위치로 이동)
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             (pos) => {
@@ -23,43 +37,40 @@ document.addEventListener('DOMContentLoaded', () => {
                 const loc = new kakao.maps.LatLng(lat, lng);
                 map.setCenter(loc);
             },
-            () => console.log('GPS 권한 없음')
+            () => console.log('위치 정보 권한이 없거나 차단되었습니다.')
         );
     }
 
-    // === 3. JSON 데이터 로드 ===
+    // 3. 데이터 로드
     fetch('./data.json')
         .then(res => res.json())
         .then(data => {
             allData = data;
-            // 초기: 모든 마커 생성 (보이게 할지는 필터 로직에서 결정)
+            // 로드 되자마자 마커 생성 (화면엔 전체가 보임)
             createMarkers(allData);
-        });
+        })
+        .catch(err => console.error("JSON 로드 실패:", err));
 
-    // === 4. 마커 생성 및 관리 함수 ===
+    // 4. 마커 생성 함수
     function createMarkers(items) {
-        // 기존 마커 제거
+        // 기존 마커 싹 지우기
         markers.forEach(m => m.setMap(null));
         markers = [];
 
         items.forEach(item => {
             const pos = new kakao.maps.LatLng(item.lat, item.lng);
             
-            // 마커 이미지 (선택사항)
-            // const imageSrc = 'marker_url.png'; 
-            // const imageSize = new kakao.maps.Size(24, 35); 
-            // const markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize);
-
+            // 마커 객체 생성
             const marker = new kakao.maps.Marker({
                 position: pos,
-                map: map, // 지도에 표시
+                map: map,
                 title: item.name
             });
 
-            // 마커 객체에 커스텀 데이터 저장
-            marker.data = item;
+            // 필터링을 위해 마커에 데이터 심어두기
+            marker.data = item; 
 
-            // 마커 클릭 이벤트
+            // 마커 클릭 이벤트 연결
             kakao.maps.event.addListener(marker, 'click', () => {
                 handleMarkerClick(marker, item);
             });
@@ -67,24 +78,21 @@ document.addEventListener('DOMContentLoaded', () => {
             markers.push(marker);
         });
         
-        applyFilter(activeFilter); // 필터 적용
+        // 현재 필터 상태 적용 (초기화)
+        applyFilter(activeFilter);
     }
 
-    // === 5. 마커 클릭 핸들러 (요구사항 #7) ===
+    // 5. 마커 클릭 핸들러 (핀 클릭 시 동작)
     function handleMarkerClick(clickedMarker, item) {
-        // 1. 다른 마커 숨기기 (선택된 것만 남김)
+        // (1) 선택된 핀만 남기고 나머지 숨기기
         markers.forEach(m => {
-            if (m === clickedMarker) {
-                m.setVisible(true);
-            } else {
-                m.setVisible(false);
-            }
+            m.setVisible(m === clickedMarker);
         });
 
-        // 2. 지도 이동
+        // (2) 지도 중심 이동
         map.panTo(clickedMarker.getPosition());
 
-        // 3. 커스텀 오버레이 표시
+        // (3) 기존 말풍선 닫고 새로 열기
         if (activeOverlay) activeOverlay.setMap(null);
 
         const content = `
@@ -103,41 +111,48 @@ document.addEventListener('DOMContentLoaded', () => {
         overlay.setMap(map);
         activeOverlay = overlay;
 
-        // 모바일: 핀 클릭시 사이드바 내리기
+        // (4) 모바일: 핀을 클릭했으니 목록창(바텀시트)을 아래로 내림
         const sidebar = document.getElementById('sidebar');
-        sidebar.classList.remove('expanded');
-        sidebar.classList.add('collapsed');
+        if(sidebar) {
+            sidebar.classList.remove('expanded');
+            sidebar.classList.add('collapsed');
+        }
     }
 
-    // 지도 빈 곳 클릭 시 "리셋" (모든 마커 다시 보이기 + 오버레이 닫기)
+    // 6. 지도 빈 곳 클릭 이벤트 (초기화)
     kakao.maps.event.addListener(map, 'click', () => {
+        // 말풍선 닫기
         if (activeOverlay) {
             activeOverlay.setMap(null);
             activeOverlay = null;
         }
-        // 필터 상태에 맞춰 다시 마커 보이기
-        applyFilter(activeFilter);
         
-        // 모바일: 사이드바 살짝 올리기 (기본 상태)
+        // 숨겨진 핀들 다시 보여주기 (현재 필터 조건에 맞는 것들만)
+        applyFilter(activeFilter); 
+
+        // 모바일: 목록창 상태 초기화
         const sidebar = document.getElementById('sidebar');
-        sidebar.classList.remove('expanded');
-        sidebar.classList.remove('collapsed');
+        if(sidebar) {
+            sidebar.classList.remove('expanded');
+            sidebar.classList.remove('collapsed');
+        }
     });
 
-    // === 6. 필터링 로직 (탭 & 검색) ===
+    // 7. 통합 필터링 함수 (탭 + 검색어)
     function applyFilter(type) {
         activeFilter = type;
-        const keyword = document.getElementById('search-keyword').value.trim();
+        const keywordInput = document.getElementById('search-keyword');
+        const keyword = keywordInput ? keywordInput.value.trim() : "";
 
         markers.forEach(marker => {
             const item = marker.data;
             let isVisible = true;
 
-            // 1. 탭 필터 체크
+            // (1) 탭 조건 확인
             if (type !== 'all' && item.type !== type) isVisible = false;
-
-            // 2. 검색어 필터 체크 (검색어가 있을 때만)
-            if (keyword && !item.name.includes(keyword) && !item.address?.includes(keyword)) {
+            
+            // (2) 검색어 조건 확인 (검색어가 있을 때만)
+            if (keyword && !item.name.includes(keyword) && !(item.address && item.address.includes(keyword))) {
                 isVisible = false;
             }
 
@@ -145,17 +160,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 탭 버튼 클릭 이벤트
+    // 8. 탭 버튼 클릭 이벤트
     const filterBtns = document.querySelectorAll('.filter-tabs button');
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
+            // UI 변경
             document.querySelector('.filter-tabs .active').classList.remove('active');
             btn.classList.add('active');
+            
+            // 필터 적용
             applyFilter(btn.dataset.type);
         });
     });
 
-    // === 7. 검색 기능 (리스트 렌더링) ===
+    // 9. 검색 기능 수행
     const searchInput = document.getElementById('search-keyword');
     const searchBtn = document.getElementById('search-btn');
 
@@ -164,32 +182,34 @@ document.addEventListener('DOMContentLoaded', () => {
         const listEl = document.getElementById('place-list');
         const sidebar = document.getElementById('sidebar');
 
-        // 요구사항 #5: 검색 전엔 아무것도 안 나옴 (초기 상태 유지)
+        // 검색어가 없으면 안내 문구 표시 (지도는 현재 필터 유지)
         if (!keyword) {
-            listEl.innerHTML = '<div class="empty-message">검색어를 입력해주세요.</div>';
-            applyFilter(activeFilter); // 마커는 필터 상태 유지
+            listEl.innerHTML = '<div class="empty-message">원하는 지역이나<br>세차장 이름을 검색해보세요.</div>';
+            applyFilter(activeFilter);
             return;
         }
 
-        // 데이터 필터링 (리스트용)
+        // 데이터 필터링 (리스트 표시용)
         const results = allData.filter(item => {
-            // 탭 필터 + 검색어 모두 만족해야 함
             const typeMatch = activeFilter === 'all' || item.type === activeFilter;
             const nameMatch = item.name.includes(keyword) || (item.address && item.address.includes(keyword));
             return typeMatch && nameMatch;
         });
 
-        // 리스트 렌더링
+        // 리스트 그리기
         renderList(results);
         
-        // 지도 마커도 동기화
+        // 지도 마커도 검색어에 맞춰 필터링
         applyFilter(activeFilter);
 
-        // 모바일: 검색 시 사이드바 확장
-        sidebar.classList.add('expanded');
-        sidebar.classList.remove('collapsed');
+        // 모바일: 검색했으니 목록창을 위로 올림
+        if(sidebar) {
+            sidebar.classList.add('expanded');
+            sidebar.classList.remove('collapsed');
+        }
     }
 
+    // 리스트 렌더링 함수
     function renderList(items) {
         const listEl = document.getElementById('place-list');
         listEl.innerHTML = '';
@@ -212,52 +232,64 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
             `;
+            
+            // 리스트 항목 클릭 시 해당 핀 클릭 효과 트리거
             el.addEventListener('click', () => {
-                // 리스트 아이템 클릭 시 해당 마커 클릭 핸들러 트리거
                 const targetMarker = markers.find(m => m.data.id === item.id);
-                if (targetMarker) handleMarkerClick(targetMarker, item);
+                if (targetMarker) {
+                    handleMarkerClick(targetMarker, item);
+                }
             });
             listEl.appendChild(el);
         });
     }
 
-    searchInput.addEventListener('keyup', (e) => {
-        if (e.key === 'Enter') performSearch();
-    });
-    searchBtn.addEventListener('click', performSearch);
+    // 검색 이벤트 바인딩
+    if(searchInput && searchBtn) {
+        searchInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') performSearch();
+        });
+        searchBtn.addEventListener('click', performSearch);
+        
+        // 모바일: 검색창 터치 시 목록창 올리기
+        searchInput.addEventListener('focus', () => {
+            if (window.innerWidth <= 768) {
+                const sidebar = document.getElementById('sidebar');
+                if(sidebar) {
+                    sidebar.classList.add('expanded');
+                    sidebar.classList.remove('collapsed');
+                }
+            }
+        });
+    }
 
-    // === 8. 모바일 인터랙션 (바텀 시트) ===
-    const sidebar = document.getElementById('sidebar');
+    // 10. 모바일 핸들바 (드래그 대신 클릭 토글로 심플하게 구현)
     const handle = document.querySelector('.mobile-handle-area');
+    if(handle) {
+        handle.addEventListener('click', () => {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar.classList.contains('expanded')) {
+                sidebar.classList.remove('expanded');
+            } else {
+                sidebar.classList.add('expanded');
+                sidebar.classList.remove('collapsed');
+            }
+        });
+    }
 
-    // 핸들 클릭 시 토글
-    handle.addEventListener('click', () => {
-        if (sidebar.classList.contains('expanded')) {
-            sidebar.classList.remove('expanded');
-        } else {
-            sidebar.classList.add('expanded');
-            sidebar.classList.remove('collapsed');
-        }
-    });
-
-    // 검색창 포커스 시 확장
-    searchInput.addEventListener('focus', () => {
-        if (window.innerWidth <= 768) {
-            sidebar.classList.add('expanded');
-            sidebar.classList.remove('collapsed');
-        }
-    });
-
-    // GPS 버튼
-    document.getElementById('gps-btn').addEventListener('click', () => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(pos => {
-                const loc = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
-                map.setCenter(loc);
-                map.setLevel(5);
-            });
-        } else {
-            alert("GPS를 지원하지 않습니다.");
-        }
-    });
-});
+    // 11. GPS 버튼 (수동 이동)
+    const gpsBtn = document.getElementById('gps-btn');
+    if(gpsBtn) {
+        gpsBtn.addEventListener('click', () => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(pos => {
+                    const loc = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+                    map.setCenter(loc);
+                    map.setLevel(5);
+                });
+            } else {
+                alert("위치 정보를 사용할 수 없습니다.");
+            }
+        });
+    }
+}
