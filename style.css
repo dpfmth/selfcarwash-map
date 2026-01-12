@@ -1,55 +1,57 @@
 /* =========================================
-   1. 테마 변수 (Rich Life Style Colors)
+   1. 테마 변수 (Rich Life Style)
    ========================================= */
 :root {
-    --bg-color: #f5f5f7; 
-    --text-color: #1d1d1f;
-    --text-sub: #86868b;
+    --bg-color: #f2f4f6; /* 배경색 살짝 더 차분하게 */
+    --text-color: #191f28;
+    --text-sub: #8b95a1;
     --card-bg: #ffffff;
-    --border-color: #d2d2d7;
-    --accent-color: #000000;
+    --border-color: #e5e8eb;
+    --accent-color: #333d4b;
     --accent-text: #ffffff;
-    --input-bg: #f5f5f7;
-    --shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    --input-bg: #f9fafb;
+    --hover-bg: #f2f4f6;
+    --shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
     --bubble-bg: #ffffff;
     --tag-red-bg: #fff1f2; --tag-red-text: #e11d48;
     --tag-blue-bg: #eff6ff; --tag-blue-text: #2563eb;
-    --link-color: #6e6e73;
+    --link-color: #6b7684;
 }
 
 [data-theme="dark"] {
-    --bg-color: #000000;
+    --bg-color: #101012;
     --text-color: #f5f5f7;
     --text-sub: #86868b;
     --card-bg: #1c1c1e;
-    --border-color: #38383a;
+    --border-color: #2c2c2e;
     --accent-color: #ffffff;
     --accent-text: #000000;
     --input-bg: #2c2c2e;
-    --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
-    --bubble-bg: #2c2c2e;
+    --hover-bg: #3a3a3c;
+    --shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    --bubble-bg: #252525;
     --tag-red-bg: #4c0519; --tag-red-text: #fda4af;
     --tag-blue-bg: #172554; --tag-blue-text: #93c5fd;
     --link-color: #a1a1a6;
 }
 
 /* =========================================
-   2. 글로벌 설정 & 지도 깨짐 방지
+   2. 글로벌 & 리셋
    ========================================= */
 * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-#map * { box-sizing: content-box; } /* 카카오맵 필수 */
+#map * { box-sizing: content-box; }
 #map img { max-width: none; height: auto; border: 0; }
 
 body, html { 
     margin: 0; padding: 0; width: 100%; height: 100%; 
-    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; 
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif; 
     overflow: hidden; background-color: var(--bg-color); color: var(--text-color); 
     transition: background 0.3s, color 0.3s; 
 }
 a { text-decoration: none; color: inherit; }
 
 /* =========================================
-   3. 레이아웃 (Container)
+   3. 레이아웃 컨테이너
    ========================================= */
 .layout-container {
     width: 100%; height: 100%;
@@ -70,84 +72,103 @@ a { text-decoration: none; color: inherit; }
 #map { width: 100%; height: 100%; }
 
 /* =========================================
-   4. 사이드바 내부 디자인
+   4. 사이드바 섹션 디자인 (여기가 핵심!)
    ========================================= */
-/* 브랜드 링크 (상단) */
-.brand-nav { margin-bottom: 16px; }
+
+/* [섹션 1] 헤더 */
+.sidebar-header {
+    padding: 24px 24px 20px 24px; /* 내부 여백 */
+    border-bottom: 1px solid var(--border-color); /* 하단 구분선 */
+    flex-shrink: 0; /* 크기 고정 */
+}
+
+/* 브랜드 링크 (작게 상단 위치) */
 .brand-link {
-    font-size: 11px; font-weight: 600; color: var(--link-color);
-    display: inline-flex; align-items: center; gap: 4px; transition: 0.2s;
+    display: inline-block; font-size: 11px; font-weight: 600; 
+    color: var(--link-color); margin-bottom: 8px;
+    transition: 0.2s;
 }
 .brand-link:hover { color: var(--accent-color); }
 
-/* 헤더 영역 */
-.sidebar-header { 
-    display: flex; justify-content: space-between; align-items: flex-start; 
-    margin-bottom: 24px;
+/* 제목과 아이콘 가로 정렬 */
+.header-row {
+    display: flex; justify-content: space-between; align-items: flex-start;
 }
-.sidebar-header h1 { margin: 0 0 4px 0; font-size: 22px; font-weight: 800; color: var(--text-color); letter-spacing: -0.5px; }
-.desc { font-size: 12px; color: var(--text-sub); margin: 0; font-weight: 500; }
+.title-area h1 { margin: 0; font-size: 22px; font-weight: 800; color: var(--text-color); letter-spacing: -0.5px; }
+.title-area .desc { margin: 4px 0 0 0; font-size: 12px; color: var(--text-sub); }
 
-/* 아이콘 버튼들 */
-.action-buttons { display: flex; gap: 4px; }
+/* 우측 상단 아이콘 버튼들 */
+.action-buttons { display: flex; gap: 8px; }
 .icon-btn {
-    background: transparent; border: 1px solid transparent; cursor: pointer;
-    color: var(--text-color); padding: 6px; border-radius: 8px;
-    transition: 0.2s; display: flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px;
+    background: var(--input-bg); border: 1px solid transparent; 
+    border-radius: 10px; cursor: pointer; color: var(--text-color);
+    display: flex; align-items: center; justify-content: center;
+    transition: 0.2s;
 }
-.icon-btn:hover { background-color: var(--input-bg); }
+.icon-btn:hover { background: var(--hover-bg); transform: translateY(-1px); }
 
-/* 검색창 */
-.search-container { margin-bottom: 16px; }
+
+/* [섹션 2] 본문 (검색/필터) */
+.sidebar-body {
+    padding: 24px;
+    overflow-y: auto; /* 내용 많으면 스크롤 */
+    flex: 1; /* 남은 공간 차지 */
+}
+
 .search-box {
     display: flex; align-items: center; background: var(--input-bg);
-    border-radius: 12px; padding: 0 12px; border: 1px solid transparent;
-    transition: border-color 0.2s;
+    border-radius: 12px; padding: 0 12px; margin-bottom: 12px;
+    border: 1px solid transparent; transition: 0.2s; height: 46px;
 }
-.search-box:focus-within { border-color: var(--accent-color); }
+.search-box:focus-within { border-color: var(--text-sub); background: var(--card-bg); }
 .search-box input {
-    flex: 1; border: none; background: none; padding: 12px 0;
-    font-size: 14px; color: var(--text-color);
+    flex: 1; border: none; background: none; 
+    font-size: 14px; color: var(--text-color); height: 100%;
 }
 .search-box button { 
     background: none; border: none; color: var(--text-sub); 
-    cursor: pointer; padding: 8px; display: flex; 
+    cursor: pointer; padding: 0 8px; height: 100%; display: flex; align-items: center;
 }
 
-/* 필터 탭 */
-.filter-tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+.filter-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
 .filter-tabs button {
     flex: 1; padding: 10px 0; border-radius: 12px; 
     border: 1px solid var(--border-color); background: var(--card-bg); 
     color: var(--text-sub); font-size: 13px; font-weight: 600; 
-    cursor: pointer; transition: 0.2s; text-align: center;
+    cursor: pointer; transition: 0.2s;
 }
-.filter-tabs button:hover { background: var(--input-bg); }
+.filter-tabs button:hover { background: var(--hover-bg); color: var(--text-color); }
 .filter-tabs button.active {
     background: var(--accent-color); color: var(--accent-text); 
-    border-color: var(--accent-color);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-color: var(--accent-color); box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-/* ★★★ 제보하기 버튼 (카드형 디자인) ★★★ */
-.sidebar-footer { margin-top: auto; /* 맨 아래로 밀기 */ }
+
+/* [섹션 3] 푸터 (제보하기) */
+.sidebar-footer {
+    padding: 20px 24px;
+    border-top: 1px solid var(--border-color); /* 상단 구분선 */
+    background: var(--card-bg);
+    flex-shrink: 0;
+}
+
 .report-link {
     display: flex; justify-content: space-between; align-items: center;
     padding: 16px; background: var(--input-bg); border-radius: 16px;
-    border: 1px solid transparent; transition: 0.2s;
+    border: 1px solid transparent; transition: 0.2s; text-decoration: none;
 }
-.report-link .link-text { display: flex; flex-direction: column; gap: 2px; }
-.report-link .title { font-size: 14px; font-weight: 700; color: var(--text-color); }
-.report-link .sub { font-size: 11px; color: var(--text-sub); }
-.report-link svg { color: var(--text-sub); transition: 0.2s; }
+.report-link .title { display: block; font-size: 14px; font-weight: 700; color: var(--text-color); margin-bottom: 2px;}
+.report-link .sub { display: block; font-size: 11px; color: var(--text-sub); }
+.report-link .link-icon { color: var(--text-sub); transition: 0.2s; }
 
-.report-link:hover { background: var(--card-bg); border-color: var(--border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-.report-link:hover .title { color: #d6336c; } /* 강조색 */
-.report-link:hover svg { color: #d6336c; transform: translateX(2px); }
+.report-link:hover { background: var(--hover-bg); border-color: var(--border-color); }
+.report-link:hover .title { color: #d6336c; } 
+.report-link:hover .link-icon { color: #d6336c; transform: translateX(2px); }
 
 
 /* =========================================
-   5. 반응형 레이아웃 (PC vs Mobile)
+   5. 반응형 (PC / Mobile)
    ========================================= */
 
 /* 📱 모바일 (768px 미만) */
@@ -161,32 +182,30 @@ a { text-decoration: none; color: inherit; }
 
     .sidebar {
         position: fixed; bottom: 0; left: 0; width: 100%; 
-        height: auto; max-height: 80vh; /* 화면 80%까지만 */
-        border-radius: 28px 28px 0 0;
-        padding: 24px 20px 30px 20px; 
+        height: auto; max-height: 85vh;
+        border-radius: 24px 24px 0 0;
         box-shadow: 0 -4px 30px rgba(0,0,0,0.15);
         border: 1px solid var(--border-color); border-bottom: none;
     }
     
-    /* 모바일에서는 GPS 버튼을 사이드바 위로 띄움 */
-    #gps-btn { 
-        position: absolute; bottom: 320px; right: 20px; z-index: 50;
-    }
+    #gps-btn { position: absolute; bottom: 360px; right: 20px; z-index: 50; }
+    
+    /* 모바일에서 푸터 여백 조정 */
+    .sidebar-footer { padding-bottom: 30px; }
 }
 
 /* 🖥️ PC (768px 이상) */
 @media (min-width: 768px) {
     .layout-container {
-        display: flex; padding: 24px; gap: 24px;
-        background-color: var(--bg-color); /* 배경색 노출 */
+        display: flex; padding: 20px; gap: 20px;
+        background-color: var(--bg-color);
     }
 
     .sidebar {
         width: 360px; height: 100%;
-        border-radius: 24px; padding: 32px;
+        border-radius: 24px; 
         box-shadow: var(--shadow);
         border: 1px solid var(--border-color);
-        position: relative; 
     }
 
     .map-container {
@@ -223,7 +242,7 @@ a { text-decoration: none; color: inherit; }
     content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
     border-top: 8px solid var(--bubble-bg); border-left: 8px solid transparent; border-right: 8px solid transparent;
 }
-.overlay-bubble h3 { margin: 0 0 4px 0; font-size: 17px; font-weight: 700; color: var(--text-color); }
+.overlay-bubble h3 { margin: 0 0 6px 0; font-size: 17px; font-weight: 700; color: var(--text-color); }
 .overlay-bubble p { margin: 0 0 4px 0; font-size: 13px; color: var(--text-sub); display: flex; align-items: center; gap: 6px; }
 .overlay-bubble a { color: var(--text-color); text-decoration: none; font-weight: 500; }
 .overlay-bubble .close-btn {
