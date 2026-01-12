@@ -6,9 +6,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initMap() {
+    // === 지도 생성 ===
     const mapContainer = document.getElementById('map');
     const mapOption = {
-        center: new kakao.maps.LatLng(37.566826, 126.9786567),
+        center: new kakao.maps.LatLng(37.566826, 126.9786567), // 기본 위치 (서울시청)
         level: 7
     };
 
@@ -16,24 +17,28 @@ function initMap() {
     try {
         map = new kakao.maps.Map(mapContainer, mapOption);
     } catch (e) {
-        console.error("지도 로딩 실패. API키 및 도메인을 확인하세요.", e);
+        console.error("지도 로딩 실패. HTML의 API키 및 도메인 설정을 확인하세요.", e);
         return;
     }
 
+    // 전역 변수 설정
     let allData = [];
     let markers = [];
-    let activeOverlay = null;
-    let activeFilter = 'all';
+    let activeOverlay = null; // 현재 열린 정보창
+    let activeFilter = 'all'; // 현재 필터 상태
 
-    // 2. GPS 자동 실행
+    // === 2. GPS 자동 실행 (접속 시) ===
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(pos => {
-            const loc = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
-            map.setCenter(loc);
-        });
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const loc = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+                map.setCenter(loc);
+            },
+            () => console.log('위치 권한이 없거나 차단됨')
+        );
     }
 
-    // 3. 데이터 로드
+    // === 3. 데이터 로드 ===
     fetch('./data.json')
         .then(res => res.json())
         .then(data => {
@@ -42,9 +47,9 @@ function initMap() {
         })
         .catch(err => console.error("데이터 로드 실패:", err));
 
-    // 4. 마커 생성
+    // === 4. 마커 생성 함수 ===
     function createMarkers(items) {
-        markers.forEach(m => m.setMap(null));
+        markers.forEach(m => m.setMap(null)); // 기존 마커 삭제
         markers = [];
 
         items.forEach(item => {
@@ -54,25 +59,27 @@ function initMap() {
                 map: map,
                 title: item.name
             });
-            marker.data = item;
-            
+            marker.data = item; // 데이터 저장
+
+            // 마커 클릭 이벤트
             kakao.maps.event.addListener(marker, 'click', () => {
                 handleMarkerClick(marker, item);
             });
             markers.push(marker);
         });
-        applyFilter(activeFilter);
+        
+        applyFilter(activeFilter); // 초기 필터 적용
     }
 
-    // 5. [핵심] 핀 클릭 시 카드형 정보창 표시
+    // === 5. 마커 클릭 핸들러 (카드형 정보창 표시) ===
     function handleMarkerClick(clickedMarker, item) {
-        // 선택된 핀만 보기
+        // (1) 선택된 핀만 남기고 나머지 숨기기
         markers.forEach(m => m.setVisible(m === clickedMarker));
         map.panTo(clickedMarker.getPosition());
 
         if (activeOverlay) activeOverlay.setMap(null);
 
-        // 카드 HTML 조립
+        // (2) DOM 요소로 카드 정보창 생성
         const contentNode = document.createElement('div');
         contentNode.className = 'overlay-card';
 
@@ -86,6 +93,7 @@ function initMap() {
         if (item.personal) tagsHtml += `<span class="feature-tag personal">개인용품</span>`;
         if (item.foam) tagsHtml += `<span class="feature-tag foam">폼랜스</span>`;
 
+        // HTML 조립
         contentNode.innerHTML = `
             <div class="card-header">
                 <h3>${item.name}</h3>
@@ -105,14 +113,14 @@ function initMap() {
             <div class="tag-row">${tagsHtml}</div>
         `;
 
-        // 닫기 버튼 로직
+        // (3) 닫기 버튼 로직
         const closeBtn = contentNode.querySelector('.close-btn');
         closeBtn.addEventListener('click', () => {
             if (activeOverlay) activeOverlay.setMap(null);
             activeOverlay = null;
-            applyFilter(activeFilter); // 지도 원상복구
+            applyFilter(activeFilter); // 지도 마커 복구
             
-            // 모바일 시트 복구
+            // 모바일 시트 복구 (중간 위치로)
             const sidebar = document.getElementById('sidebar');
             if(sidebar) {
                 sidebar.classList.remove('expanded');
@@ -120,7 +128,7 @@ function initMap() {
             }
         });
 
-        // 오버레이 등록
+        // (4) 오버레이 지도에 표시
         const overlay = new kakao.maps.CustomOverlay({
             position: clickedMarker.getPosition(),
             content: contentNode,
@@ -129,7 +137,7 @@ function initMap() {
         overlay.setMap(map);
         activeOverlay = overlay;
 
-        // 모바일: 핀 클릭 시 바텀시트 내리기
+        // (5) 모바일 UX: 핀 클릭 시 바텀시트 내리기 (지도 확보)
         const sidebar = document.getElementById('sidebar');
         if(sidebar) {
             sidebar.classList.remove('expanded');
@@ -137,7 +145,7 @@ function initMap() {
         }
     }
 
-    // 6. 지도 빈 곳 클릭 (초기화)
+    // === 6. 지도 빈 곳 클릭 (초기화) ===
     kakao.maps.event.addListener(map, 'click', () => {
         if (activeOverlay) {
             activeOverlay.setMap(null);
@@ -145,6 +153,7 @@ function initMap() {
         }
         applyFilter(activeFilter);
         
+        // 모바일 UX: 시트 중간 복귀
         const sidebar = document.getElementById('sidebar');
         if(sidebar) {
             sidebar.classList.remove('expanded');
@@ -152,16 +161,19 @@ function initMap() {
         }
     });
 
-    // 7. 필터 및 검색
+    // === 7. 필터 및 검색 로직 ===
     function applyFilter(type) {
         activeFilter = type;
-        const keyword = document.getElementById('search-keyword').value.trim();
+        const keywordInput = document.getElementById('search-keyword');
+        const keyword = keywordInput ? keywordInput.value.trim() : "";
 
         markers.forEach(marker => {
             const item = marker.data;
             let isVisible = true;
             if (type !== 'all' && item.type !== type) isVisible = false;
-            if (keyword && !item.name.includes(keyword) && !(item.address?.includes(keyword))) isVisible = false;
+            if (keyword && !item.name.includes(keyword) && !(item.address && item.address.includes(keyword))) {
+                isVisible = false;
+            }
             marker.setVisible(isVisible);
         });
     }
@@ -175,8 +187,10 @@ function initMap() {
         });
     });
 
+    // === 8. 검색 실행 ===
     function performSearch() {
-        const keyword = document.getElementById('search-keyword').value.trim();
+        const keywordInput = document.getElementById('search-keyword');
+        const keyword = keywordInput ? keywordInput.value.trim() : "";
         const listEl = document.getElementById('place-list');
         const sidebar = document.getElementById('sidebar');
 
@@ -188,13 +202,14 @@ function initMap() {
 
         const results = allData.filter(item => {
             const typeMatch = activeFilter === 'all' || item.type === activeFilter;
-            const nameMatch = item.name.includes(keyword) || (item.address?.includes(keyword));
+            const nameMatch = item.name.includes(keyword) || (item.address && item.address.includes(keyword));
             return typeMatch && nameMatch;
         });
 
         renderList(results);
         applyFilter(activeFilter);
-        
+
+        // 검색 시 모바일 시트 올리기
         if(sidebar) {
             sidebar.classList.add('expanded');
             sidebar.classList.remove('collapsed');
@@ -233,32 +248,84 @@ function initMap() {
     if(searchInput) {
         searchInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') performSearch(); });
         searchBtn.addEventListener('click', performSearch);
+        
+        // 모바일: 검색창 포커스 시 시트 확장
         searchInput.addEventListener('focus', () => {
             if (window.innerWidth <= 768) {
                 const sidebar = document.getElementById('sidebar');
-                if(sidebar) { sidebar.classList.add('expanded'); sidebar.classList.remove('collapsed'); }
+                if(sidebar) {
+                    sidebar.classList.add('expanded');
+                    sidebar.classList.remove('collapsed');
+                }
             }
         });
     }
 
+    // === 9. 모바일 핸들바 제스처 (클릭 & 스와이프) ===
     const handle = document.querySelector('.mobile-handle-area');
-    if(handle) {
+    const sidebar = document.getElementById('sidebar');
+
+    if(handle && sidebar) {
+        // (1) 클릭 토글 (스와이프 안했을 때)
+        let isSwipe = false;
+
         handle.addEventListener('click', () => {
-            const sidebar = document.getElementById('sidebar');
-            if (sidebar.classList.contains('expanded')) { sidebar.classList.remove('expanded'); } 
-            else { sidebar.classList.add('expanded'); sidebar.classList.remove('collapsed'); }
+            if (isSwipe) return; // 스와이프 동작이었으면 클릭 무시
+
+            if (sidebar.classList.contains('expanded')) {
+                sidebar.classList.remove('expanded');
+            } else if (sidebar.classList.contains('collapsed')) {
+                sidebar.classList.remove('collapsed');
+            } else {
+                sidebar.classList.add('expanded');
+            }
+        });
+
+        // (2) 스와이프 로직
+        let startY = 0;
+
+        handle.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].clientY;
+            isSwipe = false;
+        }, {passive: true});
+
+        handle.addEventListener('touchend', (e) => {
+            const endY = e.changedTouches[0].clientY;
+            const distance = startY - endY; // 양수: 위로, 음수: 아래로
+
+            // 30px 이상 움직이면 스와이프로 간주
+            if (Math.abs(distance) > 30) {
+                isSwipe = true; // 클릭 이벤트 방지용 플래그
+
+                if (distance > 0) {
+                    // ▲ 위로 쓸어올림 -> 확장
+                    sidebar.classList.add('expanded');
+                    sidebar.classList.remove('collapsed');
+                } else {
+                    // ▼ 아래로 쓸어내림
+                    if (sidebar.classList.contains('expanded')) {
+                        sidebar.classList.remove('expanded'); // 중간으로
+                    } else {
+                        sidebar.classList.add('collapsed'); // 바닥으로
+                    }
+                }
+            }
         });
     }
 
+    // === 10. GPS 버튼 (수동) ===
     const gpsBtn = document.getElementById('gps-btn');
     if(gpsBtn) {
         gpsBtn.addEventListener('click', () => {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(pos => {
                     const loc = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
-                    map.setCenter(loc); map.setLevel(5);
-                });
-            } else { alert("위치 정보를 사용할 수 없습니다."); }
+                    map.setCenter(loc);
+                    map.setLevel(5);
+                }, () => alert("위치 정보를 가져올 수 없습니다."));
+            } else {
+                alert("GPS를 지원하지 않습니다.");
+            }
         });
     }
 }
