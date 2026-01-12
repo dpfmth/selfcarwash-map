@@ -1,145 +1,166 @@
-/* [핵심] 모바일 흔들림 방지 초기화 */
+/* [기본 초기화] */
 * { box-sizing: border-box; }
 body, html { 
     width: 100%; height: 100%; margin: 0; padding: 0; 
     font-family: 'Malgun Gothic', dotum, '돋움', sans-serif; 
-    overflow: hidden; /* 스크롤바 생성 방지 */
+    overflow: hidden; 
 }
 
-/* 지도 컨테이너 꽉 채우기 */
-#map_wrap { position: relative; width: 100%; height: 100%; }
-#map { width: 100%; height: 100%; position: relative; }
-
-/* BETA 뱃지 */
-.beta-badge {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background: #ff3b30;
-    color: white;
-    padding: 2px 8px;
-    font-size: 10px;
-    font-weight: bold;
-    border-radius: 4px;
-    z-index: 500;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+/* [핵심 구조 변경] 
+   PC 기준: Flexbox를 사용하여 '사이드바 | 지도' 구조 생성
+*/
+#map_wrap { 
+    display: flex;       /* 가로 배치 시작 */
+    width: 100%; 
+    height: 100%; 
+    position: relative; 
 }
 
-/* 상단 검색창 */
-#search_box {
-    position: absolute;
-    top: 40px; /* 뱃지 아래 */
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 200;
-    background: white;
-    padding: 8px;
-    border-radius: 25px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    display: flex;
-    gap: 5px;
-    width: 90%;
-    max-width: 400px;
-}
-#keyword { flex: 1; border: none; outline: none; padding: 5px 10px; font-size: 15px;}
-#btn_search { background: #2c3e50; color: white; border: none; border-radius: 20px; padding: 0 15px; cursor: pointer; font-weight: bold; white-space: nowrap;}
-
-/* GPS 버튼 스타일 */
-#btn_gps {
-    position: absolute;
-    top: 100px; /* 검색창 아래 */
-    right: 10px;
-    z-index: 200;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 8px;
-    cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    font-size: 12px;
-    color: #333;
-}
-
-/* 검색 결과 창 */
+/* 1. 사이드바 (왼쪽 고정 영역) */
 #menu_wrap {
-    display: none; 
-    position: absolute;
-    top: 90px; 
-    left: 10px; 
-    bottom: 70px; /* 하단바 위까지 */
-    width: 300px;
-    background: rgba(255, 255, 255, 0.95);
-    z-index: 100;
-    border-radius: 10px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    width: 390px;        /* 너비 고정 (Richlife 스타일) */
+    height: 100%;        /* 높이 꽉 채우기 */
+    background: white;
+    display: flex;
     flex-direction: column;
+    z-index: 20;
+    border-right: 1px solid #ddd;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    
+    /* PC에서는 absolute 아님 */
+    position: relative; 
+    top: auto; left: auto; bottom: auto;
 }
 
+/* 2. 지도 (나머지 영역 꽉 채우기) */
+#map { 
+    flex: 1;             /* 남은 공간 모두 차지 */
+    height: 100%; 
+    position: relative; 
+    z-index: 1;
+}
+
+/* 리스트 헤더 */
 .list-header { 
-    padding: 10px; 
-    border-bottom: 1px solid #ddd; 
+    padding: 15px; 
+    border-bottom: 1px solid #eee; 
     font-weight: bold; 
-    font-size: 14px; 
-    background: #f8f9fa;
-    border-radius: 10px 10px 0 0;
+    font-size: 16px; 
+    background: #fff;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
-.close-btn { background: none; border: none; cursor: pointer; color: #888; }
+/* PC에서는 닫기 버튼 숨김 (항상 나와야 하니까) */
+.close-btn { display: none; } 
 
+/* 리스트 영역 스크롤 */
 #placesList { 
-    padding: 0; margin: 0; 
-    overflow-y: auto;
     flex: 1; 
+    overflow-y: auto; 
+    padding: 0; margin: 0; 
 }
-#placesList li { list-style: none; padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; background: #fff; }
-#placesList li:hover { background: #f0f8ff; }
-#placesList .item .info h5 { margin: 0 0 5px 0; font-size: 15px; color: #333; }
-#placesList .item .info span { display: block; margin-top: 3px; color: #888; font-size: 13px; }
-#placesList .item .info .tel { color: #009900; }
-
-/* 모바일 하단 바 */
-.mobile-bottom-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 60px;
-    background: #ffffff;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    border-top: 1px solid #ddd;
-    z-index: 9999; 
-    padding-bottom: env(safe-area-inset-bottom);
-}
-
-.nav-btn {
-    background: none;
-    border: none;
-    font-size: 11px;
-    color: #555;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    cursor: pointer;
-    width: 33%;
-    -webkit-tap-highlight-color: transparent;
-}
-.nav-btn span { font-size: 20px; margin-bottom: 4px; }
+#placesList li { list-style: none; padding: 15px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: 0.2s; }
+#placesList li:hover { background: #f9f9f9; }
+#placesList .item .info h5 { margin: 0 0 5px 0; font-size: 16px; color: #333; font-weight: bold;}
+#placesList .item .info span { display: block; margin-top: 4px; color: #888; font-size: 13px; }
+#placesList .item .info .tel { color: #007bff; margin-top: 5px;}
 
 /* 페이지네이션 */
-#pagination { padding:10px; text-align: center; background: #fff; border-radius: 0 0 10px 10px;}
-#pagination a { display:inline-block; margin-right:10px; color:#555; text-decoration: none; }
-#pagination .on { font-weight: bold; cursor: default; color:#2c3e50; }
+#pagination { padding: 15px; text-align: center; border-top: 1px solid #eee;}
+#pagination a { display:inline-block; margin: 0 5px; color:#555; text-decoration: none; padding: 5px 10px; border-radius: 4px;}
+#pagination a.on { background: #333; color: #fff; cursor: default; }
 
-/* 모바일 반응형 처리 */
-@media screen and (max-width: 600px) {
+/* [지도 위 플로팅 요소들] 
+   검색창과 버튼은 지도 위에 떠 있어야 함
+*/
+#search_box {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%); /* 지도 영역 중앙 정렬 */
+    z-index: 100;
+    background: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    display: flex;
+    gap: 8px;
+    width: 320px;
+}
+#keyword { flex: 1; border: 1px solid #ddd; border-radius: 4px; padding: 8px; outline: none; }
+#btn_search { background: #2c3e50; color: white; border: none; border-radius: 4px; padding: 0 15px; cursor: pointer; font-weight: bold; }
+
+#btn_gps {
+    position: absolute;
+    top: 80px; 
+    right: 20px;
+    z-index: 100;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px 12px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: bold;
+}
+
+/* BETA 뱃지 */
+.beta-badge {
+    position: absolute; top: 15px; left: 410px; /* 사이드바 너비(390)+여백 */
+    background: #ff3b30; color: white; padding: 4px 8px; font-size: 11px; font-weight: bold; border-radius: 4px; z-index: 50;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* 모바일 하단바 (PC에선 숨김) */
+.mobile-bottom-bar { display: none; }
+
+
+/* =========================================
+   [모바일 반응형] 화면 너비 768px 이하일 때
+   Richlife처럼 사이드바가 숨겨지거나 전체를 덮는 구조로 변경
+   ========================================= */
+@media screen and (max-width: 768px) {
+    
+    /* 1. 구조를 다시 겹치는 방식(Block)으로 변경 */
+    #map_wrap { display: block; }
+    
+    /* 2. 사이드바는 처음에 숨김 (토글 방식 or 검색시 등장) */
     #menu_wrap {
-        width: 95%;
-        left: 2.5%;
-        top: 100px;
-        bottom: 70px;
+        position: absolute; /* 다시 띄움 */
+        width: 100%;        /* 모바일은 꽉 차게 */
+        height: 50%;        /* 화면 절반 정도 올라오게 (Richlife 스타일) */
+        bottom: 60px;       /* 하단바 위 */
+        top: auto; left: 0;
+        border-right: none;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        z-index: 999;
+        display: none;      /* JS로 껐다 켰다 함 */
     }
+    
+    /* 닫기 버튼 모바일에선 보이기 */
+    .close-btn { display: block; font-size: 18px; padding: 0 10px; }
+
+    /* 3. 지도 */
+    #map { width: 100%; height: 100%; }
+
+    /* 4. 검색창 위치 조정 */
+    #search_box {
+        top: 10px;
+        width: 90%;
+    }
+    .beta-badge { top: 15px; left: 15px; } /* 뱃지 위치 원복 */
+
+    /* 5. 모바일 하단바 보이기 */
+    .mobile-bottom-bar {
+        position: fixed;
+        bottom: 0; left: 0; width: 100%; height: 60px;
+        background: white; border-top: 1px solid #ddd;
+        display: flex; justify-content: space-around; align-items: center;
+        z-index: 1000;
+    }
+    .nav-btn { background:none; border:none; color:#555; text-align:center; font-size:11px; cursor:pointer;}
+    .nav-btn span { display:block; font-size:20px; margin-bottom:4px; }
 }
