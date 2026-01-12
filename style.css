@@ -207,21 +207,76 @@ a { text-decoration: none; color: inherit; }
    5. 반응형 (PC vs Mobile)
    ========================================= */
 
-/* 📱 모바일 */
+/* 📱 모바일 (768px 미만) */
 @media (max-width: 767px) {
     .layout-container { display: block; }
-    .map-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
-    .sidebar {
-        position: fixed; bottom: 0; left: 0; width: 100%; 
-        height: auto; max-height: 85vh; /* 화면 85% */
-        border-radius: 24px 24px 0 0;
-        box-shadow: 0 -4px 30px rgba(0,0,0,0.15);
-        border: 1px solid var(--border-color); border-bottom: none;
+    
+    .map-container {
+        width: 100%; height: 100%;
+        position: absolute; top: 0; left: 0;
     }
-    #gps-btn { position: absolute; bottom: 320px; right: 20px; z-index: 50; }
+
+    /* 사이드바 (바텀 시트) 동작 정의 */
+    .sidebar {
+        position: fixed; 
+        bottom: 0; 
+        left: 0; 
+        width: 100%; 
+        
+        /* ★★★ 핵심: 기본 높이는 작게 (헤더+검색창만 보이게) ★★★ */
+        height: 180px; 
+        max-height: 85vh; /* 최대 높이 제한 */
+        
+        border-radius: 24px 24px 0 0;
+        padding: 10px 20px 30px 20px; /* 상단 패딩 줄임 */
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+        border: 1px solid var(--border-color); border-bottom: none;
+        
+        /* 부드러운 움직임 애니메이션 */
+        transition: height 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        z-index: 200; /* 지도보다 위 */
+        overflow: hidden; /* 작아졌을 때 내용 넘침 방지 */
+    }
+
+    /* ★★★ 확장되었을 때 (JS로 붙여줄 클래스) ★★★ */
+    .sidebar.expanded {
+        height: 80vh; /* 화면의 80%까지 올라옴 */
+        overflow-y: auto; /* 내용 많으면 스크롤 가능 */
+    }
+    
+    /* 모바일용 드래그 손잡이 디자인 */
+    .mobile-handle {
+        width: 40px; height: 5px;
+        background-color: var(--border-color);
+        border-radius: 10px;
+        margin: 0 auto 15px auto; /* 중앙 정렬 및 아래 여백 */
+        display: block; /* 모바일에서만 보임 */
+    }
+
+    /* 모바일 레이아웃 미세 조정 */
+    .brand-nav { display: none; } /* 모바일에선 브랜드 링크 숨김 (공간 확보) */
+    .sidebar-header { margin-bottom: 15px; padding: 0; border: none; }
+    .sidebar-header h1 { font-size: 18px; }
+    
+    /* GPS 버튼 위치: 시트가 작을 때 기준 */
+    #gps-btn { 
+        position: absolute; 
+        bottom: 200px; /* 시트 바로 위 */
+        right: 20px; 
+        z-index: 100;
+        transition: bottom 0.3s ease; /* 버튼도 같이 움직이게 */
+    }
+    
+    /* 시트가 커지면 GPS 버튼도 위로 도망가거나 숨김 (여기선 살짝 올림) */
+    body.sheet-open #gps-btn { bottom: 82vh; }
+    
     .sidebar-footer { padding-bottom: 30px; }
 }
 
+/* PC에서는 손잡이 숨김 */
+@media (min-width: 768px) {
+    .mobile-handle { display: none; }
+}
 /* 🖥️ PC */
 @media (min-width: 768px) {
     .layout-container { display: flex; padding: 20px; gap: 20px; background-color: var(--bg-color); }
@@ -303,3 +358,4 @@ a { text-decoration: none; color: inherit; }
 .vote-btn:hover { background: var(--hover-bg); }
 .vote-btn.active { background: var(--tag-blue-bg); border-color: var(--tag-blue-text); color: var(--tag-blue-text); }
 .vote-btn.active:last-child { background: var(--tag-red-bg); border-color: var(--tag-red-text); color: var(--tag-red-text); }
+
