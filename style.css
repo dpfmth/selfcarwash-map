@@ -1,8 +1,8 @@
 /* =========================================
-   1. 테마 변수 (Rich Life Style)
+   1. 테마 변수 (D4 Style)
    ========================================= */
 :root {
-    --bg-color: #f2f4f6;
+    --bg-color: #f2f4f6; 
     --text-color: #191f28;
     --text-sub: #8b95a1;
     --card-bg: #ffffff;
@@ -36,13 +36,22 @@
 }
 
 /* =========================================
-   2. 글로벌 & 리셋 (깨짐 방지 필수)
+   2. 글로벌 & 리셋
    ========================================= */
 * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
 
-/* ★★★ 카카오맵 깨짐 방지 (가장 중요) ★★★ */
-#map * { box-sizing: content-box; }
-#map img { max-width: none; height: auto; border: 0; }
+/* ★★★ 카카오맵 깨짐 방지 (가장 중요!) ★★★ */
+/* 지도가 깨지는 원인인 전역 스타일을 지도 내부에서만 무효화합니다 */
+#map img { 
+    max-width: none !important; 
+    height: auto !important; 
+    border: 0 !important; 
+    margin: 0 !important; 
+    padding: 0 !important;
+}
+#map div, #map span {
+    box-sizing: content-box !important; /* 카카오맵은 content-box 기준 */
+}
 
 body, html { 
     margin: 0; padding: 0; width: 100%; height: 100%; 
@@ -63,7 +72,7 @@ a { text-decoration: none; color: inherit; }
 .sidebar {
     background: var(--card-bg);
     display: flex; flex-direction: column;
-    z-index: 100;
+    z-index: 500; /* 지도보다 확실히 위에 */
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
@@ -74,51 +83,61 @@ a { text-decoration: none; color: inherit; }
 #map { width: 100%; height: 100%; }
 
 /* =========================================
-   4. 사이드바 - 섹션 디자인
+   4. 사이드바 섹션 디자인
    ========================================= */
 
-/* [헤더] */
+/* [섹션 1] 헤더 */
 .sidebar-header {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 16px 24px;
+    padding: 24px 24px 20px 24px;
     border-bottom: 1px solid var(--border-color);
-    flex-shrink: 0; height: 64px;
+    flex-shrink: 0;
 }
 
-.header-left { display: flex; align-items: center; gap: 6px; }
-.header-left h1 { margin: 0; font-size: 18px; font-weight: 800; color: var(--text-color); letter-spacing: -0.5px; }
-.version-badge {
-    font-size: 10px; font-weight: 700; color: var(--accent-text); 
-    background: var(--accent-color); padding: 2px 6px; border-radius: 4px;
+.brand-link {
+    display: inline-block; font-size: 11px; font-weight: 600; 
+    color: var(--link-color); margin-bottom: 8px;
+    transition: 0.2s;
+}
+.brand-link:hover { color: var(--accent-color); }
+
+.header-row {
+    display: flex; justify-content: space-between; align-items: flex-start;
 }
 
-.header-right { display: flex; align-items: center; gap: 8px; }
-
-.tool-link {
-    font-size: 13px; font-weight: 600; color: var(--link-color);
-    display: flex; align-items: center; gap: 4px; padding: 6px 8px;
-    border-radius: 8px; transition: 0.2s;
+/* BETA 뱃지 디자인 */
+.beta-badge {
+    display: inline-block; vertical-align: middle;
+    font-size: 10px; font-weight: 700; color: #fff;
+    background: linear-gradient(135deg, #FF6B6B, #EE5253);
+    padding: 2px 6px; border-radius: 4px; 
+    margin-left: 6px; transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(238, 82, 83, 0.3);
 }
-.tool-link:hover { background: var(--hover-bg); color: var(--text-color); }
-@media (max-width: 360px) { .link-text { display: none; } } /* 좁은화면 대응 */
 
-.divider-vertical { width: 1px; height: 16px; background: var(--border-color); margin: 0 2px; }
+.title-area h1 { margin: 0; font-size: 22px; font-weight: 800; color: var(--text-color); letter-spacing: -0.5px; }
+.title-area .desc { margin: 4px 0 0 0; font-size: 12px; color: var(--text-sub); }
 
+.action-buttons { display: flex; gap: 8px; }
 .icon-btn {
-    width: 32px; height: 32px;
-    background: transparent; border: 1px solid transparent; 
-    border-radius: 8px; cursor: pointer; color: var(--text-color);
+    width: 36px; height: 36px;
+    background: var(--input-bg); border: 1px solid transparent; 
+    border-radius: 10px; cursor: pointer; color: var(--text-color);
     display: flex; align-items: center; justify-content: center;
     transition: 0.2s;
 }
-.icon-btn:hover { background: var(--hover-bg); }
+.icon-btn:hover { background: var(--hover-bg); transform: translateY(-1px); }
 
-/* [본문] */
-.sidebar-body { padding: 20px; overflow-y: auto; flex: 1; }
+
+/* [섹션 2] 본문 */
+.sidebar-body {
+    padding: 24px;
+    overflow-y: auto; 
+    flex: 1; 
+}
 
 .search-box {
     display: flex; align-items: center; background: var(--input-bg);
-    border-radius: 12px; padding: 0 12px; margin-bottom: 16px;
+    border-radius: 12px; padding: 0 12px; margin-bottom: 12px;
     border: 1px solid transparent; transition: 0.2s; height: 46px;
 }
 .search-box:focus-within { border-color: var(--text-sub); background: var(--card-bg); }
@@ -131,7 +150,7 @@ a { text-decoration: none; color: inherit; }
     cursor: pointer; padding: 0 8px; height: 100%; display: flex; align-items: center;
 }
 
-.filter-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.filter-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
 .filter-tabs button {
     flex: 1; padding: 10px 0; border-radius: 12px; 
     border: 1px solid var(--border-color); background: var(--card-bg); 
@@ -144,53 +163,15 @@ a { text-decoration: none; color: inherit; }
     border-color: var(--accent-color); box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-.sort-bar {
-    display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
-    font-size: 12px; color: var(--text-sub);
-}
-.sort-label { font-weight: 600; margin-right: 4px; }
-.sort-btn {
-    background: none; border: none; cursor: pointer;
-    color: var(--text-sub); font-size: 12px; padding: 4px 10px;
-    border-radius: 12px; transition: 0.2s;
-}
-.sort-btn:hover { background: var(--input-bg); color: var(--text-color); }
-.sort-btn.active { background: var(--text-color); color: var(--bg-color); font-weight: 700; }
 
-/* 리스트 스타일 */
-.place-list { display: flex; flex-direction: column; gap: 12px; padding-bottom: 20px; }
-.empty-state { padding: 40px 20px; text-align: center; color: var(--text-sub); }
-.empty-state svg { margin-bottom: 10px; stroke: var(--border-color); }
-.empty-state p { font-size: 14px; margin: 0; font-weight: 500; }
-
-.place-item {
-    display: flex; gap: 12px; padding: 12px;
-    background: var(--card-bg); border-radius: 12px;
-    border: 1px solid var(--border-color); cursor: pointer; transition: 0.2s;
-}
-.place-item:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--text-sub); }
-
-.place-thumb-box { position: relative; width: 80px; height: 80px; flex-shrink: 0; }
-.place-thumb { width: 100%; height: 100%; border-radius: 8px; object-fit: cover; background: var(--input-bg); }
-.badge-mini.best {
-    position: absolute; top: -4px; left: -4px;
-    background: #ffd43b; color: #000; font-size: 10px; font-weight: 800;
-    padding: 2px 6px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10;
-}
-
-.place-info { display: flex; flex-direction: column; justify-content: center; flex: 1; }
-.place-name { font-size: 15px; font-weight: 700; color: var(--text-color); margin-bottom: 4px; }
-.place-meta { font-size: 12px; color: var(--text-sub); margin-bottom: 2px; }
-.place-tags-mini { display: flex; gap: 4px; margin-top: 6px; }
-.place-tags-mini .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
-.place-tags-mini .dot.red { background: #e03131; }
-.place-tags-mini .dot.blue { background: #1971c2; }
-
-/* [푸터] */
+/* [섹션 3] 푸터 */
 .sidebar-footer {
-    padding: 20px 24px; border-top: 1px solid var(--border-color);
-    background: var(--card-bg); flex-shrink: 0;
+    padding: 20px 24px;
+    border-top: 1px solid var(--border-color);
+    background: var(--card-bg);
+    flex-shrink: 0;
 }
+
 .report-link {
     display: flex; justify-content: space-between; align-items: center;
     padding: 16px; background: var(--input-bg); border-radius: 16px;
@@ -199,97 +180,68 @@ a { text-decoration: none; color: inherit; }
 .report-link .title { display: block; font-size: 14px; font-weight: 700; color: var(--text-color); margin-bottom: 2px;}
 .report-link .sub { display: block; font-size: 11px; color: var(--text-sub); }
 .report-link .link-icon { color: var(--text-sub); transition: 0.2s; }
+
 .report-link:hover { background: var(--hover-bg); border-color: var(--border-color); }
 .report-link:hover .title { color: #d6336c; } 
 .report-link:hover .link-icon { color: #d6336c; transform: translateX(2px); }
 
+
 /* =========================================
-   5. 반응형 (PC vs Mobile)
+   5. 반응형
    ========================================= */
 
-/* 📱 모바일 (768px 미만) */
+/* 📱 모바일 */
 @media (max-width: 767px) {
     .layout-container { display: block; }
-    
-    .map-container {
-        width: 100%; height: 100%;
-        position: absolute; top: 0; left: 0;
-    }
+    .map-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
 
-    /* 사이드바 (바텀 시트) 동작 정의 */
     .sidebar {
-        position: fixed; 
-        bottom: 0; 
-        left: 0; 
-        width: 100%; 
-        
-        /* ★★★ 핵심: 기본 높이는 작게 (헤더+검색창만 보이게) ★★★ */
-        height: 180px; 
-        max-height: 85vh; /* 최대 높이 제한 */
-        
+        position: fixed; bottom: 0; left: 0; width: 100%; 
+        height: 180px; /* 초기 높이 */
+        max-height: 85vh;
         border-radius: 24px 24px 0 0;
-        padding: 10px 20px 30px 20px; /* 상단 패딩 줄임 */
-        box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+        box-shadow: 0 -4px 30px rgba(0,0,0,0.15);
         border: 1px solid var(--border-color); border-bottom: none;
-        
-        /* 부드러운 움직임 애니메이션 */
+        overflow: hidden;
         transition: height 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        z-index: 200; /* 지도보다 위 */
-        overflow: hidden; /* 작아졌을 때 내용 넘침 방지 */
-    }
-
-    /* ★★★ 확장되었을 때 (JS로 붙여줄 클래스) ★★★ */
-    .sidebar.expanded {
-        height: 80vh; /* 화면의 80%까지 올라옴 */
-        overflow-y: auto; /* 내용 많으면 스크롤 가능 */
+        padding: 0; /* 내부 패딩 재설정 */
     }
     
-    /* 모바일용 드래그 손잡이 디자인 */
+    /* 모바일 내부 패딩 구조 변경 */
+    .sidebar-header { padding: 20px 20px 15px 20px; border-bottom: none; }
+    .sidebar-body { padding: 0 20px 20px 20px; }
+    .sidebar-footer { padding: 15px 20px 25px 20px; }
+    
+    .sidebar.expanded { height: 80vh; overflow-y: auto; }
+    
     .mobile-handle {
-        width: 40px; height: 5px;
-        background-color: var(--border-color);
-        border-radius: 10px;
-        margin: 0 auto 15px auto; /* 중앙 정렬 및 아래 여백 */
-        display: block; /* 모바일에서만 보임 */
-    }
-
-    /* 모바일 레이아웃 미세 조정 */
-    .brand-nav { display: none; } /* 모바일에선 브랜드 링크 숨김 (공간 확보) */
-    .sidebar-header { margin-bottom: 15px; padding: 0; border: none; }
-    .sidebar-header h1 { font-size: 18px; }
-    
-    /* GPS 버튼 위치: 시트가 작을 때 기준 */
-    #gps-btn { 
-        position: absolute; 
-        bottom: 200px; /* 시트 바로 위 */
-        right: 20px; 
-        z-index: 100;
-        transition: bottom 0.3s ease; /* 버튼도 같이 움직이게 */
+        width: 36px; height: 4px; background: var(--border-color);
+        border-radius: 4px; margin: 12px auto 0 auto;
     }
     
-    /* 시트가 커지면 GPS 버튼도 위로 도망가거나 숨김 (여기선 살짝 올림) */
+    #gps-btn { position: absolute; bottom: 200px; right: 20px; z-index: 400; transition: bottom 0.3s ease; }
     body.sheet-open #gps-btn { bottom: 82vh; }
-    
-    .sidebar-footer { padding-bottom: 30px; }
 }
 
-/* PC에서는 손잡이 숨김 */
-@media (min-width: 768px) {
-    .mobile-handle { display: none; }
-}
 /* 🖥️ PC */
 @media (min-width: 768px) {
-    .layout-container { display: flex; padding: 20px; gap: 20px; background-color: var(--bg-color); }
+    .mobile-handle { display: none; }
+
+    .layout-container {
+        display: flex; padding: 20px; gap: 20px;
+        background-color: var(--bg-color);
+    }
     .sidebar {
-        width: 380px; height: 100%; border-radius: 24px; 
+        width: 360px; height: 100%; border-radius: 24px; 
         box-shadow: var(--shadow); border: 1px solid var(--border-color);
+        position: relative;
     }
     .map-container {
         flex: 1; height: 100%; border-radius: 24px;
         box-shadow: var(--shadow); border: 1px solid var(--border-color);
     }
     #map { border-radius: 24px; }
-    #gps-btn { position: absolute; bottom: 40px; right: 40px; z-index: 50; }
+    #gps-btn { position: absolute; bottom: 40px; right: 40px; z-index: 400; }
 }
 
 /* GPS 버튼 */
@@ -302,60 +254,33 @@ a { text-decoration: none; color: inherit; }
 }
 #gps-btn:hover { transform: translateY(-2px); }
 
-/* =========================================
-   6. 오버레이 (팝업)
-   ========================================= */
+
+/* 오버레이 (버블) 수정 - box-sizing 강제 적용 */
 .overlay-bubble {
-    padding: 0; overflow: hidden; background-color: var(--bubble-bg);
-    border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-    text-align: left; position: relative; bottom: 55px; 
-    min-width: 260px; max-width: 280px;
+    background-color: var(--bubble-bg);
+    border-radius: 16px; padding: 16px 20px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15); 
+    text-align: left; position: relative; bottom: 50px; min-width: 220px;
     border: 1px solid var(--border-color); color: var(--text-color);
     font-family: 'Pretendard', sans-serif;
-    animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    
+    /* 지도 내부지만 내 스타일을 적용하기 위해 */
+    box-sizing: border-box !important;
 }
-@keyframes popUp { from { transform: scale(0.8) translateY(10px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+.overlay-bubble * { box-sizing: border-box !important; }
 
 .overlay-bubble::after {
     content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
     border-top: 8px solid var(--bubble-bg); border-left: 8px solid transparent; border-right: 8px solid transparent;
 }
-
-.overlay-img-box { width: 100%; height: 130px; background: #eee; overflow: hidden; }
-.overlay-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
-.overlay-content { padding: 16px; }
-
-.overlay-bubble h3 { margin: 0 0 8px 0; font-size: 18px; font-weight: 800; color: var(--text-color); line-height: 1.3; }
+.overlay-bubble h3 { margin: 0 0 6px 0; font-size: 17px; font-weight: 700; color: var(--text-color); }
+.overlay-bubble p { margin: 0 0 4px 0; font-size: 13px; color: var(--text-sub); display: flex; align-items: center; gap: 6px; }
+.overlay-bubble a { color: var(--text-color); text-decoration: none; font-weight: 500; }
 .overlay-bubble .close-btn {
-    position: absolute; top: 10px; right: 10px; z-index: 10;
-    width: 28px; height: 28px; border-radius: 50%;
-    background: rgba(0,0,0,0.6); color: #fff; border: none;
-    display: flex; justify-content: center; align-items: center; cursor: pointer;
+    position: absolute; top: 12px; right: 12px; width: 24px; height: 24px; border-radius: 50%;
+    background: var(--input-bg); color: var(--text-sub); display: flex; justify-content: center; align-items: center;
+    cursor: pointer; font-size: 14px; transition: 0.2s; border: 1px solid var(--border-color);
 }
-.meta-row { margin-bottom: 12px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-.badge { font-size: 11px; padding: 3px 6px; border-radius: 4px; font-weight: 600; }
-.badge.type-self { background: #333; color: #fff; }
-.badge.type-notouch { background: #555; color: #fff; }
-.badge.res { background: #fff0f6; color: #d6336c; }
-.badge.best { background: #ffd43b; color: #212529; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-
-.info-row { font-size: 13px; color: var(--text-sub); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
-.info-row a { color: var(--text-color); text-decoration: none; font-weight: 500; }
-
-.tag-row { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
-.tag { font-size: 11px; padding: 4px 8px; border-radius: 6px; font-weight: 700; }
-.tag.tag-red { background: var(--tag-red-bg); color: var(--tag-red-text); }
-.tag.tag-blue { background: var(--tag-blue-bg); color: var(--tag-blue-text); }
-
-/* 투표 버튼 */
-.vote-area { display: flex; gap: 8px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-color); }
-.vote-btn {
-    flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
-    padding: 8px 0; border-radius: 8px; border: 1px solid var(--border-color);
-    background: var(--input-bg); color: var(--text-sub); font-size: 12px; font-weight: 600;
-    cursor: pointer; transition: 0.2s;
-}
-.vote-btn:hover { background: var(--hover-bg); }
-.vote-btn.active { background: var(--tag-blue-bg); border-color: var(--tag-blue-text); color: var(--tag-blue-text); }
-.vote-btn.active:last-child { background: var(--tag-red-bg); border-color: var(--tag-red-text); color: var(--tag-red-text); }
-
+.overlay-bubble .close-btn:hover { background: var(--border-color); }
+.tag-red { display: inline-block; font-size: 11px; padding: 4px 8px; border-radius: 6px; background: var(--tag-red-bg); color: var(--tag-red-text); font-weight: 700; }
+.tag-blue { display: inline-block; font-size: 11px; padding: 4px 8px; border-radius: 6px; background: var(--tag-blue-bg); color: var(--tag-blue-text); font-weight: 700; }
