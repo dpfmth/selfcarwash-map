@@ -215,3 +215,45 @@ function initTheme() {
               else { await navigator.clipboard.writeText(window.location.href); alert("주소 복사 완료!"); } } catch (err) {}
     });
 }
+// ==========================================
+// 7. 모바일 바텀 시트 동작 (추가됨)
+// ==========================================
+const sidebar = document.querySelector('.sidebar');
+const searchInput = document.getElementById('search-keyword');
+const mapArea = document.getElementById('map');
+const handle = document.querySelector('.mobile-handle');
+
+// 1) 검색창 누르면 -> 시트 확장
+searchInput.addEventListener('focus', () => {
+    expandSidebar();
+});
+
+// 2) 지도(빈 공간) 누르면 -> 시트 축소
+// (카카오맵 클릭 이벤트 활용)
+kakao.maps.event.addListener(map, 'click', function() {
+    collapseSidebar();
+});
+
+// 3) 손잡이 눌러도 확장/축소 토글
+if(handle) {
+    handle.addEventListener('click', () => {
+        if(sidebar.classList.contains('expanded')) {
+            collapseSidebar();
+        } else {
+            expandSidebar();
+        }
+    });
+}
+
+// 함수: 시트 올리기
+function expandSidebar() {
+    sidebar.classList.add('expanded');
+    document.body.classList.add('sheet-open'); // GPS 버튼 이동용
+}
+
+// 함수: 시트 내리기
+function collapseSidebar() {
+    sidebar.classList.remove('expanded');
+    document.body.classList.remove('sheet-open');
+    searchInput.blur(); // 키보드 내리기
+}
