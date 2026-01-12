@@ -9,7 +9,7 @@ function initMap() {
     // === 지도 생성 ===
     const mapContainer = document.getElementById('map');
     const mapOption = {
-        center: new kakao.maps.LatLng(37.566826, 126.9786567), // 기본 위치 (서울시청)
+        center: new kakao.maps.LatLng(37.566826, 126.9786567), // 기본 위치
         level: 7
     };
 
@@ -65,50 +65,87 @@ function initMap() {
         applyFilter(activeFilter);
     }
 
-    // === 5. 마커 클릭 핸들러 (확장형 카드 UI) ===
+    // === 5. 마커 클릭 핸들러 (최종 업그레이드 버전) ===
     function handleMarkerClick(clickedMarker, item) {
+        // (1) 핀 정리 및 이동
         markers.forEach(m => m.setVisible(m === clickedMarker));
         map.panTo(clickedMarker.getPosition());
 
         if (activeOverlay) activeOverlay.setMap(null);
 
-        // 카드 요소 생성
         const contentNode = document.createElement('div');
         contentNode.className = 'overlay-card';
 
-        // 데이터 가공
+        // === 데이터 가공 ===
         const typeText = item.type === 'self' ? '셀프' : '노터치';
         const phoneDisplay = item.phone || '번호없음';
         const bookingBadge = item.booking === '예약제' ? '<span class="feature-tag booking">예약제</span>' : '';
         const bgStyle = item.img ? `background-image: url('${item.img}');` : 'background-color: #ddd;';
         const routeUrl = `https://map.kakao.com/link/to/${item.name},${item.lat},${item.lng}`;
 
+        // [추가] 공지사항
+        let noticeHtml = '';
+        if (item.notice) {
+            noticeHtml = `
+                <div class="notice-box">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    <span>${item.notice}</span>
+                </div>`;
+        }
+
+        // [추가] 홍보 문구
+        let promoHtml = '';
+        if (item.promo) {
+            promoHtml = `<span class="promo-text">${item.promo}</span>`;
+        }
+
+        // [추가] 베이 정보
+        let bayInfoHtml = '';
+        if (item.bays) {
+            bayInfoHtml = `
+                <div class="info-row bay-info">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.74 5.88a6 6 0 0 1-8.48 8.48A6 6 0 0 1 5.26 9.75L12 2.69zM12 2.69v18.7"></path></svg>
+                    <span>${item.bays}</span>
+                </div>`;
+        }
+
         let tagsHtml = bookingBadge;
         if (item.personal) tagsHtml += `<span class="feature-tag personal">개인용품</span>`;
         if (item.foam) tagsHtml += `<span class="feature-tag foam">폼랜스</span>`;
 
-        // HTML 조립
+        // === HTML 조립 ===
         contentNode.innerHTML = `
             <div class="card-hero" style="${bgStyle}">
                 <button class="close-btn" title="닫기">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
+            
             <div class="card-body">
+                ${promoHtml}
+
                 <div class="card-header">
                     <h3 class="place-title">${item.name}<span class="place-type">${typeText}</span></h3>
                 </div>
+
                 <div class="card-meta">
                     <div class="star-rating">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> 4.8
                     </div>
                     <span>리뷰 128</span>
                 </div>
+
+                ${noticeHtml}
+
                 <div class="info-row">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
                     <span>${phoneDisplay}</span>
                 </div>
+
+                ${bayInfoHtml}
+                
                 <div class="tag-row">${tagsHtml}</div>
+
                 <div class="action-bar">
                     <a href="tel:${item.phone}" class="action-btn call">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg> 전화
@@ -120,8 +157,9 @@ function initMap() {
             </div>
         `;
 
-        // 닫기 이벤트
-        contentNode.querySelector('.close-btn').addEventListener('click', () => {
+        // 닫기 버튼 이벤트
+        const closeBtn = contentNode.querySelector('.close-btn');
+        closeBtn.addEventListener('click', () => {
             if (activeOverlay) activeOverlay.setMap(null);
             activeOverlay = null;
             applyFilter(activeFilter); 
@@ -132,7 +170,8 @@ function initMap() {
         // 오버레이 등록
         const overlay = new kakao.maps.CustomOverlay({
             position: clickedMarker.getPosition(),
-            content: contentNode, yAnchor: 1
+            content: contentNode,
+            yAnchor: 1
         });
         overlay.setMap(map);
         activeOverlay = overlay;
@@ -151,7 +190,7 @@ function initMap() {
         if(sidebar) { sidebar.classList.remove('expanded'); sidebar.classList.remove('collapsed'); }
         
         const searchInput = document.getElementById('search-keyword');
-        if(searchInput) searchInput.blur(); // 키보드 내림
+        if(searchInput) searchInput.blur(); 
     });
 
     // === 7. 필터 및 검색 ===
@@ -162,7 +201,7 @@ function initMap() {
             const item = marker.data;
             let isVisible = true;
             if (type !== 'all' && item.type !== type) isVisible = false;
-            if (keyword && !item.name.includes(keyword) && !(item.address && item.address.includes(keyword))) isVisible = false;
+            if (keyword && !item.name.includes(keyword) && !(item.address?.includes(keyword))) isVisible = false;
             marker.setVisible(isVisible);
         });
     }
