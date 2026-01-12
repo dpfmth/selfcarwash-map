@@ -6,9 +6,7 @@
     <title>세차여지도 - 내 주변 세차장 찾기</title>
     
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-    
     <link rel="stylesheet" href="style.css">
-
     <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=071678e0af064945d4c2ac55dca44e9c"></script>
 </head>
 <body>
@@ -17,37 +15,39 @@
 
         <aside class="sidebar">
             
-            <header class="sidebar-header">
-                <div class="header-left">
+            <div class="mobile-handle"></div>
+
+            <div class="brand-nav">
+                <a href="https://cafe.naver.com/detailingforum" target="_blank" class="brand-link">
+                    디테일링 포럼 홈 ↗
+                </a>
+            </div>
+
+            <div class="sidebar-header">
+                <div class="title-area">
                     <h1>세차여지도</h1>
-                    <span class="version-badge">Beta</span>
+                    <p class="desc">디테일링포럼.에르소</p>
                 </div>
                 
-                <div class="header-right">
-                    <a href="https://cafe.naver.com/detailingforum" target="_blank" class="tool-link" title="디테일링 포럼 가기">
-                        <span class="link-text">디테일링 포럼</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                    </a>
-                    
-                    <div class="divider-vertical"></div>
-
-                    <button id="share-btn" title="공유하기" class="icon-btn">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                <div class="action-buttons">
+                    <button id="theme-toggle" title="다크모드 전환" class="icon-btn">
+                        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
                     </button>
-
-                    <button id="theme-toggle" title="테마 변경" class="icon-btn">
-                        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    <button id="share-btn" title="공유하기" class="icon-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
                     </button>
                 </div>
-            </header>
+            </div>
 
             <div class="sidebar-body">
-                <div class="search-box">
-                    <input type="text" id="search-keyword" placeholder="지역 또는 이름 검색 (예: 몬스터)">
-                    <button id="search-btn">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    </button>
+                <div class="search-container">
+                    <div class="search-box">
+                        <input type="text" id="search-keyword" placeholder="지역 또는 세차장 이름 검색">
+                        <button id="search-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="filter-tabs">
@@ -55,14 +55,6 @@
                     <button id="btn-self">셀프</button>
                     <button id="btn-notouch">노터치</button>
                 </div>
-
-                <div class="sort-bar">
-                    <span class="sort-label">정렬</span>
-                    <button class="sort-btn active" data-sort="name">이름순</button>
-                    <button class="sort-btn" data-sort="distance">거리순</button>
-                </div>
-
-                <div id="place-list" class="place-list"></div>
             </div>
 
             <div class="sidebar-footer">
@@ -76,14 +68,18 @@
                     </div>
                 </a>
             </div>
+            
+            <div id="place-list" class="place-list"></div>
         </aside>
 
         <main class="map-container">
             <div id="map"></div>
+            
             <button id="gps-btn" title="내 위치로 이동">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
             </button>
         </main>
+    
     </div>
 
     <script src="script.js"></script>
