@@ -298,5 +298,7 @@
   { "id": 56, "name": "오토스테이 대전동구", "type": "notouch", "lat": 36.335678, "lng": 127.455678, "phone": "1533-7777", "price": 13000, "img": "https://via.placeholder.com/80", "booking": "비예약제", "personal": false, "foam": false },
   { "id": 57, "name": "워시플러스", "type": "self", "lat": 36.385678, "lng": 127.355678, "phone": "042-868-6666", "price": 3000, "img": "https://via.placeholder.com/80", "booking": "비예약제", "personal": true, "foam": true },
   { "id": 58, "name": "JK 디테일링 2호점", "type": "self", "lat": 36.375678, "lng": 127.335678, "phone": "010-5678-1234", "price": 16000, "img": "https://via.placeholder.com/80", "booking": "예약제", "personal": true, "foam": true },
-  { "id": 59, "name": "힐링워시", "type": "self", "lat": 36.295678, "lng": 127.375678, "phone": "042-585-8888", "price": 3000, "img": "https://via.placeholder.com/80", "booking": "비예약제", "personal": true, "foam": false }
+  { "id": 59, "name": "힐링워시", "type": "self", "lat": 36.295678, "lng": 127.375678, "phone": "042-585-8888", "price": 3000, "img": "https://via.placeholder.com/80", "booking": "비예약제", "personal": true, "foam": false },
+  { "id": 60, "name": "금강로하스카워시셀프세차장", "type": "self", "lat": 36.454089, "lng": 127.428207, "phone": "042-585-8888", "price": 3000, "img": "https://via.placeholder.com/80", "booking": "비예약제", "personal": true, "foam": false }
+]
 ]
